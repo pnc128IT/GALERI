@@ -350,7 +350,8 @@
     display:flex;align-items:center;justify-content:center;
     overflow:hidden;
   }
-  .album-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .album-cover img,
+  .album-cover video{width:100%;height:100%;object-fit:cover;display:block;}
   .album-cover .empty-icon{width:34px;height:34px;color:var(--line);}
   .perf{
     position:absolute;left:0;right:0;
@@ -479,8 +480,34 @@
     box-shadow:0 12px 28px -10px rgba(0,0,0,.6), 0 0 18px -6px var(--amber-glow);
     transform:translateY(-2px);
   }
-  .photo-tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease;}
-  .photo-tile:hover img{transform:scale(1.06);}
+  .photo-tile img,
+  .photo-tile video{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease;}
+  .photo-tile:hover img,
+  .photo-tile:hover video{transform:scale(1.06);}
+  .play-badge{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
+  }
+  .play-badge .play-circle{
+    width:42px;height:42px;border-radius:50%;
+    background:rgba(18,16,22,0.55);
+    backdrop-filter:blur(2px);
+    border:1px solid rgba(255,255,255,.25);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 18px -4px var(--amber-glow);
+  }
+  .play-badge svg{width:16px;height:16px;color:var(--paper);margin-left:2px;}
+  .type-tag{
+    position:absolute;bottom:7px;left:7px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--paper);
+    background:rgba(18,16,22,0.7);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:6px;
+    padding:2px 6px;
+  }
   .photo-tile .del-photo{
     position:absolute;top:7px;right:7px;
     width:26px;height:26px;border-radius:50%;
@@ -657,9 +684,9 @@
 
     <div id="drop-zone">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-      <p>Seret &amp; lepas foto di sini, atau klik untuk memilih</p>
-      <span class="hint">JPG · PNG · WEBP</span>
-      <input type="file" id="file-input" accept="image/*" multiple>
+      <p>Seret &amp; lepas foto atau video di sini, atau klik untuk memilih</p>
+      <span class="hint">JPG · PNG · WEBP · MP4 · MOV · WEBM</span>
+      <input type="file" id="file-input" accept="image/*,video/*" multiple>
     </div>
 
     <div class="photo-grid" id="photo-grid"></div>
@@ -698,6 +725,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </div>
   <img id="lb-img" src="" alt="Foto">
+  <video id="lb-video" src="" controls autoplay style="display:none;max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 30px 60px rgba(0,0,0,.5);"></video>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -854,18 +882,33 @@ function renderAlbums(){
     const card = document.createElement('div');
     card.className='album-card';
     const cover = album.photos[0];
+    let coverHtml = `
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-4 4-3-3-5 5"/>
+      </svg>`;
+    if(cover && cover.type === 'video'){
+      coverHtml = `<video src="${cover.src}" muted playsinline></video>
+        <div class="play-badge"><div class="play-circle">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div></div>`;
+    } else if(cover){
+      coverHtml = `<img src="${cover.src}" alt="">`;
+    }
+    const videoCount = album.photos.filter(p=>p.type==='video').length;
+    const photoCount = album.photos.length - videoCount;
+    const metaParts = [];
+    if(photoCount) metaParts.push(photoCount + ' FOTO');
+    if(videoCount) metaParts.push(videoCount + ' VIDEO');
+    const metaText = metaParts.length ? metaParts.join(' · ') : '0 ITEM';
     card.innerHTML = `
       <div class="album-cover">
         <div class="perf top">${'<span></span>'.repeat(8)}</div>
-        ${cover ? `<img src="${cover.src}" alt="">` : `
-          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-            <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-4 4-3-3-5 5"/>
-          </svg>`}
+        ${coverHtml}
         <div class="perf bottom">${'<span></span>'.repeat(8)}</div>
       </div>
       <div class="album-info">
         <p class="album-name">${escapeHtml(album.name)}</p>
-        <p class="album-meta">${album.photos.length} FOTO</p>
+        <p class="album-meta">${metaText}</p>
       </div>
     `;
     card.addEventListener('click', ()=> openAlbum(album.id));
@@ -946,18 +989,30 @@ function renderAlbumDetail(){
   const album = getCurrentAlbum();
   if(!album) return;
   albumTitle.textContent = album.name;
-  albumCount.textContent = album.photos.length + ' foto';
+  const videoCount = album.photos.filter(p=>p.type==='video').length;
+  const photoCount = album.photos.length - videoCount;
+  const parts = [];
+  if(photoCount) parts.push(photoCount + ' foto');
+  if(videoCount) parts.push(videoCount + ' video');
+  albumCount.textContent = parts.length ? parts.join(' · ') : '0 item';
   photoGrid.innerHTML='';
   album.photos.forEach(photo=>{
+    const isVideo = photo.type === 'video';
     const tile = document.createElement('div');
     tile.className='photo-tile';
     tile.innerHTML = `
-      <img src="${photo.src}" alt="${escapeHtml(photo.name)}">
-      <div class="del-photo" title="Hapus foto">
+      ${isVideo
+        ? `<video src="${photo.src}" muted playsinline></video>
+           <div class="play-badge"><div class="play-circle">
+             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+           </div></div>
+           <span class="type-tag">Video</span>`
+        : `<img src="${photo.src}" alt="${escapeHtml(photo.name)}">`}
+      <div class="del-photo" title="Hapus">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </div>
     `;
-    tile.querySelector('img').addEventListener('click', ()=> openLightbox(photo.src));
+    tile.querySelector('img, video').addEventListener('click', ()=> openLightbox(photo.src, photo.type));
     tile.querySelector('.del-photo').addEventListener('click', (e)=>{
       e.stopPropagation();
       openAdminModal(()=> deletePhoto(photo.id));
@@ -1016,21 +1071,36 @@ dropZone.addEventListener('drop', e=>{
   handleFiles(e.dataTransfer.files);
 });
 
+const MAX_VIDEO_MB = 60; // batas ukuran video agar tab browser tidak terlalu berat
+
 function handleFiles(fileList){
   const album = getCurrentAlbum();
   if(!album) return;
-  const files = Array.from(fileList).filter(f=> f.type.startsWith('image/'));
+  const files = Array.from(fileList).filter(f=> f.type.startsWith('image/') || f.type.startsWith('video/'));
   if(files.length===0) return;
 
+  const tooLarge = files.filter(f=> f.type.startsWith('video/') && f.size > MAX_VIDEO_MB*1024*1024);
+  const validFiles = files.filter(f=> !tooLarge.includes(f));
+  if(tooLarge.length){
+    showToast(tooLarge.length + ' video melebihi ' + MAX_VIDEO_MB + 'MB, dilewati');
+  }
+  if(validFiles.length===0){ fileInput.value=''; return; }
+
   let loaded = 0;
-  files.forEach(file=>{
+  validFiles.forEach(file=>{
+    const isVideo = file.type.startsWith('video/');
     const reader = new FileReader();
     reader.onload = (e)=>{
-      album.photos.push({ id:'p'+Date.now()+Math.random().toString(16).slice(2), src:e.target.result, name:file.name });
+      album.photos.push({
+        id:'p'+Date.now()+Math.random().toString(16).slice(2),
+        src:e.target.result,
+        name:file.name,
+        type: isVideo ? 'video' : 'image'
+      });
       loaded++;
-      if(loaded === files.length){
+      if(loaded === validFiles.length){
         renderAlbumDetail();
-        showToast(files.length + ' foto ditambahkan');
+        showToast(validFiles.length + ' item ditambahkan');
       }
     };
     reader.readAsDataURL(file);
@@ -1043,14 +1113,30 @@ function handleFiles(fileList){
 ========================================================= */
 const lightbox = document.getElementById('lightbox');
 const lbImg = document.getElementById('lb-img');
+const lbVideo = document.getElementById('lb-video');
 
-function openLightbox(src){
-  lbImg.src = src;
+function openLightbox(src, type){
+  if(type === 'video'){
+    lbImg.style.display='none';
+    lbVideo.style.display='block';
+    lbVideo.src = src;
+    lbVideo.currentTime = 0;
+  } else {
+    lbVideo.pause();
+    lbVideo.style.display='none';
+    lbVideo.src='';
+    lbImg.style.display='block';
+    lbImg.src = src;
+  }
   lightbox.classList.add('visible');
 }
-document.getElementById('lb-close').addEventListener('click', ()=> lightbox.classList.remove('visible'));
-lightbox.addEventListener('click', e=>{ if(e.target===lightbox) lightbox.classList.remove('visible'); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') lightbox.classList.remove('visible'); });
+function closeLightbox(){
+  lightbox.classList.remove('visible');
+  lbVideo.pause();
+}
+document.getElementById('lb-close').addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', e=>{ if(e.target===lightbox) closeLightbox(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLightbox(); });
 
 /* init */
 renderAlbums();
