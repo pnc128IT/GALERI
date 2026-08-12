@@ -2070,10 +2070,16 @@ const adminAuth =
 */
 
 const db =
-  getFirestore(firebaseApp);
+getFirestore(firebaseApp);
+
+const adminDb =
+getFirestore(adminApp);
 
 const storage =
-  getStorage(firebaseApp);
+getStorage(firebaseApp);
+
+const adminStorage =
+getStorage(adminApp);
 
 
 /*
