@@ -741,8 +741,71 @@ const ADMIN_PASSWORD = "admin1";  // kata sandi khusus untuk mengizinkan penghap
 /* =========================================================
    STATE (tersimpan hanya selama sesi/tab ini terbuka)
 ========================================================= */
-let albums = [];        // {id, name, photos:[{id, src, name}]}
+let albums = [];        // {id, name, photos:[{id, src, name, type}]}
 let currentAlbumId = null;
+
+/* =========================================================
+   PENYIMPANAN PERMANEN (IndexedDB)
+   Data (album + foto/video) disimpan di browser ini secara
+   permanen — tetap ada walau tab ditutup atau di-refresh.
+   Catatan: data tersimpan lokal di perangkat & browser ini
+   saja (tidak tersinkron ke perangkat lain), dan akan hilang
+   jika data situs/browser dibersihkan secara manual.
+========================================================= */
+const DB_NAME = 'fotoVaultDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'albums';
+let db = null;
+
+function openDatabase(){
+  return new Promise((resolve, reject)=>{
+    if(!('indexedDB' in window)){ reject(new Error('IndexedDB tidak didukung')); return; }
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e)=>{
+      const database = e.target.result;
+      if(!database.objectStoreNames.contains(STORE_NAME)){
+        database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = (e)=> resolve(e.target.result);
+    req.onerror = (e)=> reject(e.target.error);
+  });
+}
+
+function dbGetAllAlbums(){
+  return new Promise((resolve, reject)=>{
+    if(!db){ resolve([]); return; }
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = ()=> resolve(req.result || []);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function dbPutAlbum(album){
+  if(!db) return;
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  tx.objectStore(STORE_NAME).put(album);
+  tx.onerror = ()=> showToast('Gagal menyimpan perubahan');
+}
+
+function dbDeleteAlbum(id){
+  if(!db) return;
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  tx.objectStore(STORE_NAME).delete(id);
+}
+
+async function initStorage(){
+  try{
+    db = await openDatabase();
+    albums = await dbGetAllAlbums();
+  } catch(err){
+    console.error('IndexedDB tidak tersedia:', err);
+    db = null;
+    showToast('Penyimpanan permanen tidak tersedia di browser ini');
+  }
+  renderAlbums();
+}
 let isAdmin = false;         // true setelah verifikasi kata sandi admin berhasil
 let pendingAdminAction = null; // fungsi yang dijalankan setelah verifikasi admin sukses
 
@@ -954,7 +1017,9 @@ newAlbumName.addEventListener('keydown', e=>{ if(e.key==='Enter') createAlbum();
 function createAlbum(){
   const name = newAlbumName.value.trim();
   if(!name){ newAlbumName.focus(); return; }
-  albums.push({ id: 'a'+Date.now(), name, photos: [] });
+  const newAlbum = { id: 'a'+Date.now(), name, photos: [] };
+  albums.push(newAlbum);
+  dbPutAlbum(newAlbum);
   closeAlbumModal();
   renderAlbums();
   showToast('Album "'+name+'" dibuat');
@@ -1027,6 +1092,7 @@ document.getElementById('delete-album-btn').addEventListener('click', ()=>{
     if(!album) return;
     if(confirm('Hapus album "'+album.name+'" beserta semua fotonya?')){
       albums = albums.filter(a=>a.id!==currentAlbumId);
+      dbDeleteAlbum(currentAlbumId);
       currentAlbumId = null;
       albumView.classList.remove('visible');
       albumsView.style.display='block';
@@ -1040,6 +1106,7 @@ function deletePhoto(photoId){
   const album = getCurrentAlbum();
   if(!album) return;
   album.photos = album.photos.filter(p=>p.id!==photoId);
+  dbPutAlbum(album);
   renderAlbumDetail();
   showToast('Foto dihapus');
 }
@@ -1099,6 +1166,7 @@ function handleFiles(fileList){
       });
       loaded++;
       if(loaded === validFiles.length){
+        dbPutAlbum(album);
         renderAlbumDetail();
         showToast(validFiles.length + ' item ditambahkan');
       }
@@ -1139,7 +1207,7 @@ lightbox.addEventListener('click', e=>{ if(e.target===lightbox) closeLightbox();
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLightbox(); });
 
 /* init */
-renderAlbums();
+initStorage();
 </script>
 </body>
 </html>
