@@ -2068,15 +2068,14 @@ const adminAuth =
 
  Keduanya menggunakan project yang sama.
 */
-
 const db =
-getFirestore(firebaseApp);
-
-const adminDb =
-getFirestore(adminApp);
+  getFirestore(firebaseApp);
 
 const storage =
-getStorage(firebaseApp);
+  getStorage(firebaseApp);
+        
+const adminDb =
+getFirestore(adminApp);
 
 const adminStorage =
 getStorage(adminApp);
