@@ -4100,60 +4100,60 @@ async function deleteCurrentAlbum(){
 
 
       /*
-        Firestore metadata
-      */
+  Firestore metadata
+*/
 
-      await deleteDoc(
-        adminAlbumDocument(
-          album.id,
-          photo.id
-        )
-      );
+await deleteDoc(
+  adminPhotoDocument(
+    album.id,
+    photo.id
+  )
+);
 
-    }
-
-
-    /*
-      Hapus dokumen album.
-    */
-
-    await deleteDoc(
-      adminAlbumDocument(
-        album.id
-      )
-    );
+}
 
 
-    /*
-      Update state.
-    */
+/*
+  Hapus dokumen album.
+*/
 
-    albums =
-      albums.filter(
-        item =>
-          item.id !== album.id
-      );
-
-
-    currentAlbumId =
-      null;
+await deleteDoc(
+  adminAlbumDocument(
+    album.id
+  )
+);
 
 
-    albumView.classList.remove(
-      "visible"
-    );
+/*
+  Update state.
+*/
+
+albums =
+  albums.filter(
+    item =>
+      item.id !== album.id
+  );
 
 
-    albumsView.style.display =
-      "block";
+currentAlbumId =
+  null;
 
 
-    renderAlbums();
+albumView.classList.remove(
+  "visible"
+);
 
 
-    showToast(
-      "Album dihapus."
-    );
+albumsView.style.display =
+  "block";
+
+
+renderAlbums();
+
+
+showToast(
+  "Album dihapus."
+);
 
 
   }catch(error){
