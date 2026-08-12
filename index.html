@@ -2381,10 +2381,49 @@ function photoDocument(
 
 
 /*
-=========================================================
- LOAD ALBUMS
-=========================================================
-*/
+ * Dokumen foto untuk ADMIN
+ */
+
+function adminPhotoDocument(
+  albumId,
+  photoId
+){
+
+  return doc(
+    adminDb,
+    "users",
+    ownerUid,
+    "albums",
+    albumId,
+    "photos",
+    photoId
+  );
+
+}
+
+
+/*
+ * Dokumen album untuk ADMIN
+ */
+
+function adminAlbumDocument(
+  albumId
+){
+
+  return doc(
+    adminDb,
+    "users",
+    ownerUid,
+    "albums",
+    albumId
+  );
+
+}
+
+
+/*
+ * LOAD ALBUMS
+ */
 
 async function loadAlbums(){
 
