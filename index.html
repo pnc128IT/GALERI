@@ -4457,67 +4457,7 @@ async function handleFiles(fileList){
        * Upload resumable.
        */
 
-      const uploadTask = uploadBytesResumable(
-  storageRef,
-  file,
-  {
-    contentType: file.type
-  }
-);
-
-
-      /*
-       * Tunggu upload selesai.
-       * Sekaligus tampilkan progress.
-       */
-
-      await new Promise(
-        (resolve, reject) => {
-
-          uploadTask.on(
-            "state_changed",
-
-            snapshot => {
-
-              const progress =
-                Math.round(
-                  (
-                    snapshot.bytesTransferred /
-                    snapshot.totalBytes
-                  ) * 100
-                );
-
-
-              dropText.textContent =
-                `Mengunggah ${file.name}... ${progress}%`;
-
-
-              console.log(
-                `Upload ${file.name}: ${progress}%`
-              );
-
-            },
-
-            error => {
-
-              console.error(
-                "Storage upload error:",
-                error
-              );
-
-              reject(error);
-
-            },
-
-            () => {
-
-              resolve();
-
-            }
-          );
-
-        }
-      );
+      const uploadTask = uploadBytesResumable
 
 
       /*
