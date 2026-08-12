@@ -1964,7 +1964,6 @@ import {
 import {
   getStorage,
   ref,
-  uploadBytes,
   uploadBytesResumable,
   getDownloadURL,
   deleteObject
@@ -4458,15 +4457,13 @@ async function handleFiles(fileList){
        * Upload resumable.
        */
 
-      const uploadTask =
-        uploadBytesResumable(
-          storageRef,
-          file,
-          {
-            contentType:
-              file.type
-          }
-        );
+      cconst uploadTask = uploadBytesResumable(
+  storageRef,
+  file,
+  {
+    contentType: file.type
+  }
+);
 
 
       /*
