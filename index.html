@@ -3,9 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FOTO — Arsip Foto Pribadi</title>
+<title>FOTO — Arsip Foto Pribadi (Cloud Synchronized)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK (Modular v10 via CDN) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // Konfigurasi Firebase Anda
+  const firebaseConfig = {
+    apiKey: "AIzaSyCIdM1fMzD29J-vILWuznKVbXKDnMsyp7A",
+    authDomain: "server-d336e.firebaseapp.com",
+    projectId: "server-d336e",
+    storageBucket: "server-d336e.firebasestorage.app",
+    messagingSenderId: "77281982681",
+    appId: "1:77281982681:web:a1805a3dd8ab508250a6c8",
+    measurementId: "G-YHJT5WYL9V"
+  };
+
+  // Inisialisasi Firebase
+  const appFB = initializeApp(firebaseConfig);
+  const dbFB = getFirestore(appFB);
+  window.dbFB = dbFB;
+  window.FB_ENABLED = true;
+
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <style>
   :root{
     --bg-0:#121016;
@@ -33,561 +59,175 @@
   }
   ::selection{background:var(--amber-glow);color:var(--paper);}
 
-  /* ---------- scrollbar ---------- */
   ::-webkit-scrollbar{width:10px;}
   ::-webkit-scrollbar-track{background:var(--bg-0);}
   ::-webkit-scrollbar-thumb{background:var(--bg-2);border-radius:10px;}
 
-  /* ================= AMBIENT LIGHT LAYER ================= */
-  .ambient-glow{
-    position:fixed;inset:0;z-index:0;
-    overflow:hidden;pointer-events:none;
-  }
-  .orb{
-    position:absolute;
-    border-radius:50%;
-    filter:blur(90px);
-    opacity:.5;
-    will-change:transform;
-  }
-  .orb-1{
-    width:520px;height:520px;
-    top:-180px;left:-120px;
-    background:radial-gradient(circle, var(--amber) 0%, transparent 70%);
-    animation:drift1 22s ease-in-out infinite;
-    opacity:.22;
-  }
-  .orb-2{
-    width:460px;height:460px;
-    bottom:-160px;right:-100px;
-    background:radial-gradient(circle, #7aa3c9 0%, transparent 70%);
-    animation:drift2 26s ease-in-out infinite;
-    opacity:.14;
-  }
-  .orb-3{
-    width:340px;height:340px;
-    top:40%;left:60%;
-    background:radial-gradient(circle, var(--amber) 0%, transparent 70%);
-    animation:drift3 19s ease-in-out infinite;
-    opacity:.12;
-  }
-  @keyframes drift1{
-    0%,100%{transform:translate(0,0) scale(1);}
-    50%{transform:translate(60px,50px) scale(1.12);}
-  }
-  @keyframes drift2{
-    0%,100%{transform:translate(0,0) scale(1);}
-    50%{transform:translate(-50px,-40px) scale(1.08);}
-  }
-  @keyframes drift3{
-    0%,100%{transform:translate(0,0) scale(1);}
-    50%{transform:translate(-40px,30px) scale(1.15);}
-  }
+  .ambient-glow{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform;}
+  .orb-1{width:520px;height:520px;top:-180px;left:-120px;background:radial-gradient(circle, var(--amber) 0%, transparent 70%);animation:drift1 22s ease-in-out infinite;opacity:.22;}
+  .orb-2{width:460px;height:460px;bottom:-160px;right:-100px;background:radial-gradient(circle, #7aa3c9 0%, transparent 70%);animation:drift2 26s ease-in-out infinite;opacity:.14;}
+  .orb-3{width:340px;height:340px;top:40%;left:60%;background:radial-gradient(circle, var(--amber) 0%, transparent 70%);animation:drift3 19s ease-in-out infinite;opacity:.12;}
+  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(60px,50px) scale(1.12);}}
+  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-50px,-40px) scale(1.08);}}
+  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-40px,30px) scale(1.15);}}
 
   .grain{
-    position:fixed;inset:0;z-index:1;pointer-events:none;
-    opacity:.045;mix-blend-mode:overlay;
+    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  #lock-screen, #app, .modal-overlay, #lightbox{ position:relative; z-index:2; }
+  #lock-screen, #app, .modal-overlay, #lightbox{position:relative;z-index:2;}
 
-  /* ================= LOCK SCREEN ================= */
   #lock-screen{
-    position:fixed;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    z-index:100;
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;
     background:
-      radial-gradient(600px 500px at var(--mx,50%) var(--my,38%), var(--amber-glow), transparent 60%),
+      radial-gradient(600px 500px at 50% 38%, var(--amber-glow), transparent 60%),
       radial-gradient(900px 700px at 50% 100%, rgba(122,163,201,0.08), transparent 60%),
       var(--bg-0);
     transition:opacity .6s ease, filter .6s ease, background .3s ease;
   }
   #lock-screen.hidden{opacity:0;filter:blur(6px);pointer-events:none;}
 
-  .lock-card{
-    width:min(360px, 88vw);
-    text-align:center;
-  }
-  .aperture{
-    width:76px;height:76px;margin:0 auto 28px;
-    position:relative;
-  }
+  .lock-card{width:min(360px, 88vw);text-align:center;}
+  .aperture{width:76px;height:76px;margin:0 auto 28px;position:relative;}
   .aperture::before{
-    content:'';
-    position:absolute;inset:-22px;
-    border-radius:50%;
+    content:'';position:absolute;inset:-22px;border-radius:50%;
     background:radial-gradient(circle, var(--amber-glow) 0%, transparent 72%);
-    filter:blur(6px);
-    animation:ring-pulse 3.2s ease-in-out infinite;
+    filter:blur(6px);animation:ring-pulse 3.2s ease-in-out infinite;
   }
-  @keyframes ring-pulse{
-    0%,100%{opacity:.4;transform:scale(.92);}
-    50%{opacity:.9;transform:scale(1.08);}
-  }
+  @keyframes ring-pulse{0%,100%{opacity:.4;transform:scale(.92);}50%{opacity:.9;transform:scale(1.08);}}
   .aperture svg{width:100%;height:100%;display:block;position:relative;}
-  .aperture circle.ring{
-    fill:none;stroke:var(--amber-dim);stroke-width:1.4;
-  }
+  .aperture circle.ring{fill:none;stroke:var(--amber-dim);stroke-width:1.4;}
   .aperture .blade{
-    fill:none;stroke:var(--amber);stroke-width:1.6;
-    stroke-linecap:round;
-    transform-origin:38px 38px;
-    animation:blade-breathe 4s ease-in-out infinite;
+    fill:none;stroke:var(--amber);stroke-width:1.6;stroke-linecap:round;
+    transform-origin:38px 38px;animation:blade-breathe 4s ease-in-out infinite;
   }
-  @keyframes blade-breathe{
-    0%,100%{opacity:.55;}
-    50%{opacity:1;}
-  }
+  @keyframes blade-breathe{0%,100%{opacity:.55;}50%{opacity:1;}}
 
-  .lock-eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;letter-spacing:.28em;
-    color:var(--amber-dim);
-    text-transform:uppercase;
-    margin-bottom:10px;
-  }
-  .lock-title{
-    font-family:'Fraunces',serif;
-    font-style:italic;
-    font-weight:500;
-    font-size:34px;
-    margin:0 0 6px;
-    color:var(--paper);
-    text-shadow:0 0 30px rgba(226,160,68,0.35);
-  }
-  .lock-sub{
-    color:var(--muted);
-    font-size:13.5px;
-    margin:0 0 34px;
-  }
+  .lock-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;color:var(--amber-dim);text-transform:uppercase;margin-bottom:10px;}
+  .lock-title{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:34px;margin:0 0 6px;color:var(--paper);text-shadow:0 0 30px rgba(226,160,68,0.35);}
+  .lock-sub{color:var(--muted);font-size:13.5px;margin:0 0 34px;}
 
-  .pw-row{
-    position:relative;
-    margin-bottom:18px;
-  }
+  .pw-row{position:relative;margin-bottom:18px;}
   #pw-input{
-    width:100%;
-    background:transparent;
-    border:none;
-    border-bottom:1px solid var(--line);
-    color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:20px;
-    letter-spacing:.35em;
-    text-align:center;
-    padding:10px 4px 12px;
-    outline:none;
-    transition:border-color .25s ease;
+    width:100%;background:transparent;border:none;border-bottom:1px solid var(--line);
+    color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.35em;
+    text-align:center;padding:10px 4px 12px;outline:none;transition:border-color .25s ease;
   }
   #pw-input:focus{border-color:var(--amber);}
-  #pw-input.shake{animation:shake .38s ease;}
-  @keyframes shake{
-    0%,100%{transform:translateX(0);}
-    20%{transform:translateX(-8px);}
-    40%{transform:translateX(7px);}
-    60%{transform:translateX(-5px);}
-    80%{transform:translateX(4px);}
-  }
 
   #unlock-btn{
-    width:100%;
-    background:var(--amber);
-    color:#1b1305;
-    border:none;
-    border-radius:999px;
-    padding:13px 18px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12.5px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    font-weight:600;
-    cursor:pointer;
-    position:relative;
-    overflow:hidden;
-    transition:transform .15s ease, box-shadow .15s ease, background .2s ease;
+    width:100%;background:var(--amber);color:#1b1305;border:none;border-radius:999px;
+    padding:13px 18px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.14em;
+    text-transform:uppercase;font-weight:600;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
     box-shadow:0 8px 24px -8px var(--amber-glow);
   }
-  #unlock-btn::after{
-    content:'';
-    position:absolute;top:0;left:-60%;
-    width:40%;height:100%;
-    background:linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
-    transform:skewX(-20deg);
-    transition:left .6s ease;
-  }
-  #unlock-btn:hover::after{left:130%;}
   #unlock-btn:hover{transform:translateY(-1px);box-shadow:0 12px 32px -6px var(--amber-glow);}
-  #unlock-btn:active{transform:translateY(0);}
 
-  .lock-error{
-    min-height:18px;
-    color:var(--red);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11.5px;
-    letter-spacing:.05em;
-    margin-top:14px;
-    opacity:0;
-    transition:opacity .2s ease;
-  }
+  .lock-error{min-height:18px;color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin-top:14px;opacity:0;transition:opacity .2s ease;}
   .lock-error.show{opacity:1;}
 
-  /* ================= APP ================= */
-  #app{
-    max-width:1180px;
-    margin:0 auto;
-    padding:0 28px 80px;
-    display:none;
-  }
+  #app{max-width:1180px;margin:0 auto;padding:0 28px 80px;display:none;}
   #app.visible{display:block;}
 
-  header.topbar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:34px 0 26px;
-    border-bottom:1px solid var(--line);
-    margin-bottom:34px;
-    gap:16px;
-    flex-wrap:wrap;
-  }
-  .brand{
-    display:flex;align-items:center;gap:12px;
-  }
+  header.topbar{display:flex;align-items:center;justify-content:space-between;padding:34px 0 26px;border-bottom:1px solid var(--line);margin-bottom:34px;gap:16px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:12px;}
   .brand-mark{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(226,160,68,0.55));}
   .brand-mark svg{width:100%;height:100%;}
-  .brand-text .eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10px;letter-spacing:.25em;
-    color:var(--amber-dim);text-transform:uppercase;
-  }
-  .brand-text h1{
-    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
-    font-size:23px;margin:1px 0 0;color:var(--paper);
-  }
+  .brand-text .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--amber-dim);text-transform:uppercase;}
+  .brand-text h1{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:23px;margin:1px 0 0;color:var(--paper);}
 
-  .topbar-actions{display:flex;gap:10px;align-items:center;}
+  .topbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .btn{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11.5px;letter-spacing:.08em;
-    text-transform:uppercase;
-    padding:10px 16px;
-    border-radius:999px;
-    cursor:pointer;
-    border:1px solid var(--line);
-    background:var(--bg-1);
-    color:var(--paper);
-    display:inline-flex;align-items:center;gap:7px;
-    transition:border-color .2s ease, background .2s ease, transform .15s ease, box-shadow .2s ease;
-    white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:10px 16px;border-radius:999px;cursor:pointer;border:1px solid var(--line);
+    background:var(--bg-1);color:var(--paper);display:inline-flex;align-items:center;gap:7px;
+    transition:all .2s ease;
   }
-  .btn:hover{border-color:var(--amber-dim);background:var(--bg-2);transform:translateY(-1px);box-shadow:0 6px 18px -6px rgba(226,160,68,0.25);}
-  .btn-primary{
-    background:var(--amber);color:#1b1305;border-color:var(--amber);font-weight:600;
-    box-shadow:0 6px 20px -6px var(--amber-glow);
-  }
-  .btn-primary:hover{background:#eab35e;border-color:#eab35e;box-shadow:0 10px 26px -6px rgba(226,160,68,0.55);}
+  .btn:hover{border-color:var(--amber-dim);background:var(--bg-2);transform:translateY(-1px);}
+  .btn-primary{background:var(--amber);color:#1b1305;border-color:var(--amber);font-weight:600;box-shadow:0 6px 20px -6px var(--amber-glow);}
   .btn-ghost{background:transparent;}
   .btn-danger{border-color:rgba(193,102,107,.4);color:var(--red);background:transparent;}
-  .btn-danger:hover{background:rgba(193,102,107,.1);border-color:var(--red);box-shadow:0 6px 18px -8px rgba(193,102,107,0.4);}
+  .btn-danger:hover{background:rgba(193,102,107,.1);border-color:var(--red);}
   .btn svg{width:14px;height:14px;}
-  .btn-admin-active{
-    border-color:var(--amber);color:var(--amber);background:rgba(226,160,68,0.08);
-    box-shadow:0 0 0 1px rgba(226,160,68,0.25), 0 6px 20px -6px var(--amber-glow);
-  }
-  .btn-admin-active:hover{background:rgba(226,160,68,0.14);}
+  .btn-admin-active{border-color:var(--amber);color:var(--amber);background:rgba(226,160,68,0.08);}
 
-  /* ---------- delete controls locked (non-admin) ---------- */
-  .del-photo.locked{opacity:.55 !important;}
-  .del-photo.locked svg{width:12px;height:12px;}
+  .section-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;}
+  .section-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;}
 
-  /* ---------- section label ---------- */
-  .section-row{
-    display:flex;align-items:baseline;justify-content:space-between;
-    margin-bottom:18px;flex-wrap:wrap;gap:10px;
-  }
-  .section-label{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;letter-spacing:.22em;
-    color:var(--muted);text-transform:uppercase;
-  }
-
-  /* ================= ALBUM GRID ================= */
-  #albums-view{}
-  .album-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
-    gap:22px;
-  }
+  .album-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));gap:22px;}
   .album-card{
-    background:rgba(27,24,32,0.75);
-    backdrop-filter:blur(6px);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    overflow:hidden;
-    cursor:pointer;
-    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-    position:relative;
+    background:rgba(27,24,32,0.85);backdrop-filter:blur(6px);border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;cursor:pointer;
+    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;position:relative;
   }
-  .album-card::before{
-    content:'';
-    position:absolute;inset:0;
-    border-radius:var(--radius);
-    padding:1px;
-    background:linear-gradient(135deg, rgba(226,160,68,0), rgba(226,160,68,0));
-    transition:background .3s ease;
-    pointer-events:none;
-  }
-  .album-card:hover{
-    transform:translateY(-5px);
-    border-color:var(--amber-dim);
-    box-shadow:0 20px 40px -18px rgba(0,0,0,.65), 0 0 24px -8px var(--amber-glow);
-  }
-  .album-cover{
-    height:150px;
-    background:var(--bg-2);
-    position:relative;
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-  }
-  .album-cover img,
-  .album-cover video{width:100%;height:100%;object-fit:cover;display:block;}
+  .album-card:hover{transform:translateY(-5px);border-color:var(--amber-dim);box-shadow:0 20px 40px -18px rgba(0,0,0,.65);}
+  .album-cover{height:150px;background:var(--bg-2);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .album-cover img,.album-cover video{width:100%;height:100%;object-fit:cover;display:block;}
   .album-cover .empty-icon{width:34px;height:34px;color:var(--line);}
-  .perf{
-    position:absolute;left:0;right:0;
-    display:flex;justify-content:space-around;
-    padding:0 10px;
-  }
-  .perf span{
-    width:7px;height:7px;border-radius:50%;
-    background:var(--bg-0);
-  }
-  .perf.top{top:8px;}
-  .perf.bottom{bottom:8px;}
   .album-info{padding:14px 16px 16px;}
-  .album-name{
-    font-family:'Fraunces',serif;font-weight:500;font-size:16.5px;
-    color:var(--paper);margin:0 0 4px;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  }
-  .album-meta{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10.5px;color:var(--muted);letter-spacing:.06em;
-  }
+  .album-name{font-family:'Fraunces',serif;font-weight:500;font-size:16.5px;color:var(--paper);margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .album-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.06em;}
 
   .new-album-card{
-    border:1.5px dashed var(--line);
-    border-radius:var(--radius);
-    min-height:216px;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:10px;cursor:pointer;
-    color:var(--muted);
-    transition:border-color .2s ease, color .2s ease, background .2s ease;
-    background:transparent;
+    border:1.5px dashed var(--line);border-radius:var(--radius);min-height:216px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+    color:var(--muted);transition:all .2s ease;background:transparent;
   }
   .new-album-card:hover{border-color:var(--amber-dim);color:var(--amber);background:rgba(226,160,68,0.04);}
-  .new-album-card svg{width:26px;height:26px;}
-  .new-album-card span{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;
-    letter-spacing:.12em;text-transform:uppercase;
-  }
+  .new-album-card span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
 
-  /* ---------- empty state ---------- */
-  .empty-state{
-    text-align:center;padding:70px 20px;
-    border:1px dashed var(--line);border-radius:var(--radius);
-  }
-  .empty-state svg{width:44px;height:44px;color:var(--line);margin-bottom:18px;}
-  .empty-state h3{
-    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
-    font-size:21px;margin:0 0 8px;color:var(--paper);
-  }
+  .empty-state{text-align:center;padding:70px 20px;border:1px dashed var(--line);border-radius:var(--radius);}
+  .empty-state h3{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:21px;margin:0 0 8px;color:var(--paper);}
   .empty-state p{color:var(--muted);font-size:13.5px;margin:0 0 22px;}
 
-  /* ================= ALBUM DETAIL ================= */
   #album-view{display:none;}
   #album-view.visible{display:block;}
-  .back-row{
-    display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;
-  }
-  .back-btn{
-    display:inline-flex;align-items:center;gap:6px;
-    color:var(--muted);cursor:pointer;
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;
-    text-transform:uppercase;
-    background:none;border:none;padding:0;
-    transition:color .2s ease;
-  }
+  .back-row{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+  .back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-transform:uppercase;background:none;border:none;padding:0;}
   .back-btn:hover{color:var(--amber);}
-  .back-btn svg{width:14px;height:14px;}
 
-  .album-header{
-    display:flex;align-items:flex-end;justify-content:space-between;
-    gap:16px;flex-wrap:wrap;
-    margin-bottom:26px;
-  }
-  .album-header h2{
-    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
-    font-size:32px;margin:0;color:var(--paper);
-  }
-  .album-header .count{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
-    letter-spacing:.08em;margin-top:4px;
-  }
+  .album-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px;}
+  .album-header h2{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:32px;margin:0;color:var(--paper);}
+  .album-header .count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;}
   .album-header-actions{display:flex;gap:10px;}
 
   #drop-zone{
-    border:1.5px dashed var(--line);
-    border-radius:var(--radius);
-    padding:34px 20px;
-    text-align:center;
-    margin-bottom:28px;
-    cursor:pointer;
-    transition:border-color .2s ease, background .2s ease;
-    color:var(--muted);
+    border:1.5px dashed var(--line);border-radius:var(--radius);padding:34px 20px;
+    text-align:center;margin-bottom:28px;cursor:pointer;transition:all .2s ease;color:var(--muted);
   }
-  #drop-zone.drag-over{
-    border-color:var(--amber);
-    background:rgba(226,160,68,0.06);
-    color:var(--amber);
-    box-shadow:0 0 30px -6px var(--amber-glow), inset 0 0 30px -12px var(--amber-glow);
-  }
-  #drop-zone svg{width:26px;height:26px;margin-bottom:10px;}
+  #drop-zone:hover{border-color:var(--amber-dim);background:rgba(226,160,68,0.04);}
   #drop-zone p{margin:0;font-size:13px;}
-  #drop-zone span.hint{
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;
-    color:var(--amber-dim);display:block;margin-top:6px;
-  }
   #file-input{display:none;}
 
-  .photo-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
-    gap:14px;
-  }
-  .photo-tile{
-    position:relative;
-    aspect-ratio:1/1;
-    border-radius:10px;
-    overflow:hidden;
-    background:var(--bg-2);
-    border:1px solid var(--line);
-    cursor:pointer;
-    transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
-  }
-  .photo-tile:hover{
-    border-color:var(--amber-dim);
-    box-shadow:0 12px 28px -10px rgba(0,0,0,.6), 0 0 18px -6px var(--amber-glow);
-    transform:translateY(-2px);
-  }
-  .photo-tile img,
-  .photo-tile video{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease;}
-  .photo-tile:hover img,
-  .photo-tile:hover video{transform:scale(1.06);}
-  .play-badge{
-    position:absolute;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    pointer-events:none;
-  }
-  .play-badge .play-circle{
-    width:42px;height:42px;border-radius:50%;
-    background:rgba(18,16,22,0.55);
-    backdrop-filter:blur(2px);
-    border:1px solid rgba(255,255,255,.25);
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 18px -4px var(--amber-glow);
-  }
-  .play-badge svg{width:16px;height:16px;color:var(--paper);margin-left:2px;}
-  .type-tag{
-    position:absolute;bottom:7px;left:7px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:9px;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--paper);
-    background:rgba(18,16,22,0.7);
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:6px;
-    padding:2px 6px;
-  }
-  .photo-tile .del-photo{
-    position:absolute;top:7px;right:7px;
-    width:26px;height:26px;border-radius:50%;
-    background:rgba(18,16,22,0.75);
-    border:1px solid rgba(255,255,255,.12);
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;transition:opacity .18s ease, background .18s ease;
-    color:var(--paper);
-  }
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:14px;}
+  .photo-tile{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--bg-2);border:1px solid var(--line);cursor:pointer;}
+  .photo-tile img,.photo-tile video{width:100%;height:100%;object-fit:cover;display:block;}
+  .type-tag{position:absolute;bottom:7px;left:7px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--paper);background:rgba(18,16,22,0.7);padding:2px 6px;border-radius:6px;}
+  .photo-tile .del-photo{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:50%;background:rgba(18,16,22,0.75);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease;color:var(--paper);}
   .photo-tile:hover .del-photo{opacity:1;}
-  .del-photo:hover{background:var(--red);border-color:var(--red);}
-  .del-photo svg{width:13px;height:13px;}
+  .del-photo:hover{background:var(--red);}
 
-  /* ================= LIGHTBOX ================= */
-  #lightbox{
-    position:fixed;inset:0;z-index:200;
-    background:rgba(10,9,12,0.92);
-    display:none;align-items:center;justify-content:center;
-    padding:40px;
-  }
+  #lightbox{position:fixed;inset:0;z-index:200;background:rgba(10,9,12,0.92);display:none;align-items:center;justify-content:center;padding:40px;}
   #lightbox.visible{display:flex;}
-  #lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 30px 60px rgba(0,0,0,.5);}
-  #lightbox .lb-close{
-    position:absolute;top:26px;right:30px;
-    width:38px;height:38px;border-radius:50%;
-    background:var(--bg-1);border:1px solid var(--line);
-    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper);
-  }
-  #lightbox .lb-close:hover{border-color:var(--amber-dim);}
-  #lightbox .lb-close svg{width:16px;height:16px;}
+  #lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
+  #lightbox .lb-close{position:absolute;top:26px;right:30px;width:38px;height:38px;border-radius:50%;background:var(--bg-1);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper);}
 
-  /* ================= MODAL ================= */
-  .modal-overlay{
-    position:fixed;inset:0;z-index:150;
-    background:rgba(10,9,12,0.72);
-    display:none;align-items:center;justify-content:center;
-    padding:20px;
-  }
+  .modal-overlay{position:fixed;inset:0;z-index:150;background:rgba(10,9,12,0.72);display:none;align-items:center;justify-content:center;padding:20px;}
   .modal-overlay.visible{display:flex;}
-  .modal-box{
-    width:min(380px, 100%);
-    background:var(--bg-1);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:30px 26px 26px;
-  }
-  .modal-box h3{
-    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
-    font-size:21px;margin:0 0 18px;color:var(--paper);
-  }
-  .modal-box input[type="text"]{
-    width:100%;background:var(--bg-2);border:1px solid var(--line);
-    border-radius:8px;padding:11px 13px;color:var(--paper);
-    font-family:'Inter',sans-serif;font-size:14px;outline:none;
-    margin-bottom:20px;transition:border-color .2s ease;
-  }
-  .modal-box input[type="text"]:focus{border-color:var(--amber-dim);}
+  .modal-box{width:min(380px, 100%);background:var(--bg-1);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px 26px;}
+  .modal-box h3{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:21px;margin:0 0 18px;color:var(--paper);}
+  .modal-box input{width:100%;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:11px 13px;color:var(--paper);font-size:14px;outline:none;margin-bottom:20px;}
   .modal-actions{display:flex;gap:10px;justify-content:flex-end;}
 
-  .toast{
-    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
-    background:var(--bg-2);border:1px solid var(--line);
-    padding:12px 20px;border-radius:999px;
-    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.04em;
-    color:var(--paper);opacity:0;pointer-events:none;
-    transition:opacity .25s ease, transform .25s ease;
-    z-index:250;
-  }
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg-2);border:1px solid var(--line);padding:12px 20px;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);opacity:0;pointer-events:none;transition:all .25s ease;z-index:250;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-  @media (max-width:560px){
-    .lock-title{font-size:28px;}
-    .album-header h2{font-size:26px;}
-    header.topbar{padding-top:24px;}
-  }
 </style>
 </head>
 <body>
 
-<!-- ambient light layer -->
 <div class="ambient-glow" aria-hidden="true">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
@@ -595,7 +235,6 @@
 </div>
 <div class="grain" aria-hidden="true"></div>
 
-<!-- ============ LOCK SCREEN ============ -->
 <div id="lock-screen">
   <div class="lock-card">
     <div class="aperture">
@@ -613,7 +252,7 @@
     </div>
     <div class="lock-eyebrow">Akses Privat</div>
     <h1 class="lock-title">FOTO</h1>
-    <p class="lock-sub">Masukkan kata sandi untuk membuka arsip foto Anda</p>
+    <p class="lock-sub">Masukkan kata sandi untuk membuka arsip cloud Anda</p>
     <div class="pw-row">
       <input type="password" id="pw-input" placeholder="••••••" autocomplete="off" maxlength="24">
     </div>
@@ -622,7 +261,6 @@
   </div>
 </div>
 
-<!-- ============ APP ============ -->
 <div id="app">
   <header class="topbar">
     <div class="brand">
@@ -633,7 +271,7 @@
         </svg>
       </div>
       <div class="brand-text">
-        <div class="eyebrow">Arsip Pribadi</div>
+        <div class="eyebrow">Arsip Cloud Pribadi</div>
         <h1>FOTO</h1>
       </div>
     </div>
@@ -649,27 +287,19 @@
     </div>
   </header>
 
-  <!-- ---------- ALBUM GRID VIEW ---------- -->
   <div id="albums-view">
-    <div class="section-row">
-      <span class="section-label">Album</span>
-    </div>
+    <div class="section-row"><span class="section-label">Album Cloud</span></div>
     <div id="albums-empty" class="empty-state" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-4 4-3-3-5 5"/></svg>
       <h3>Belum ada album</h3>
-      <p>Buat album pertama untuk mulai menyimpan foto Anda.</p>
+      <p>Buat album pertama untuk mulai menyimpan foto.</p>
       <button class="btn btn-primary" id="empty-new-album-btn">+ Buat Album</button>
     </div>
     <div class="album-grid" id="album-grid" style="display:none;"></div>
   </div>
 
-  <!-- ---------- ALBUM DETAIL VIEW ---------- -->
   <div id="album-view">
     <div class="back-row">
-      <button class="back-btn" id="back-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-        Semua Album
-      </button>
+      <button class="back-btn" id="back-btn">← Semua Album</button>
     </div>
     <div class="album-header">
       <div>
@@ -683,9 +313,7 @@
     </div>
 
     <div id="drop-zone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
       <p>Seret &amp; lepas foto atau video di sini, atau klik untuk memilih</p>
-      <span class="hint">JPG · PNG · WEBP · MP4 · MOV · WEBM</span>
       <input type="file" id="file-input" accept="image/*,video/*" multiple>
     </div>
 
@@ -693,11 +321,10 @@
   </div>
 </div>
 
-<!-- ============ NEW ALBUM MODAL ============ -->
 <div class="modal-overlay" id="album-modal">
   <div class="modal-box">
     <h3>Album Baru</h3>
-    <input type="text" id="new-album-name" placeholder="Nama album, mis. Liburan Bali" maxlength="40">
+    <input type="text" id="new-album-name" placeholder="Nama album" maxlength="40">
     <div class="modal-actions">
       <button class="btn btn-ghost" id="cancel-album-btn">Batal</button>
       <button class="btn btn-primary" id="confirm-album-btn">Buat</button>
@@ -705,13 +332,10 @@
   </div>
 </div>
 
-<!-- ============ ADMIN AUTH MODAL ============ -->
 <div class="modal-overlay" id="admin-modal">
   <div class="modal-box">
     <h3>Verifikasi Admin</h3>
-    <p style="color:var(--muted);font-size:12.5px;margin:-10px 0 18px;">Hanya admin yang dapat menghapus foto atau album. Masukkan kata sandi admin.</p>
-    <input type="password" id="admin-pw-input" placeholder="Kata sandi admin" autocomplete="off" maxlength="24">
-    <div id="admin-modal-error" style="display:none;color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;margin:-12px 0 16px;">Kata sandi admin salah.</div>
+    <input type="password" id="admin-pw-input" placeholder="Kata sandi admin" maxlength="24">
     <div class="modal-actions">
       <button class="btn btn-ghost" id="admin-cancel-btn">Batal</button>
       <button class="btn btn-primary" id="admin-confirm-btn">Verifikasi</button>
@@ -719,99 +343,48 @@
   </div>
 </div>
 
-<!-- ============ LIGHTBOX ============ -->
 <div id="lightbox">
-  <div class="lb-close" id="lb-close">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
-  </div>
+  <div class="lb-close" id="lb-close">✕</div>
   <img id="lb-img" src="" alt="Foto">
-  <video id="lb-video" src="" controls autoplay style="display:none;max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 30px 60px rgba(0,0,0,.5);"></video>
+  <video id="lb-video" src="" controls autoplay style="display:none;max-width:100%;max-height:100%;border-radius:8px;"></video>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========================================================
-   KONFIGURASI
-   Ganti kata sandi di bawah ini sesuai keinginan Anda.
-========================================================= */
-const VAULT_PASSWORD = "it123";     // kata sandi untuk masuk ke aplikasi
-const ADMIN_PASSWORD = "admin1";  // kata sandi khusus untuk mengizinkan penghapusan
+const VAULT_PASSWORD = "it123";
+const ADMIN_PASSWORD = "admin1";
 
-/* =========================================================
-   STATE (tersimpan hanya selama sesi/tab ini terbuka)
-========================================================= */
-let albums = [];        // {id, name, photos:[{id, src, name, type}]}
+let albums = [];
 let currentAlbumId = null;
+let isAdmin = false;
+let pendingAdminAction = null;
 
-/* =========================================================
-   PENYIMPANAN PERMANEN (IndexedDB)
-   Data (album + foto/video) disimpan di browser ini secara
-   permanen — tetap ada walau tab ditutup atau di-refresh.
-   Catatan: data tersimpan lokal di perangkat & browser ini
-   saja (tidak tersinkron ke perangkat lain), dan akan hilang
-   jika data situs/browser dibersihkan secara manual.
-========================================================= */
-const DB_NAME = 'fotoVaultDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'albums';
-let db = null;
-
-function openDatabase(){
-  return new Promise((resolve, reject)=>{
-    if(!('indexedDB' in window)){ reject(new Error('IndexedDB tidak didukung')); return; }
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = (e)=>{
-      const database = e.target.result;
-      if(!database.objectStoreNames.contains(STORE_NAME)){
-        database.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = (e)=> resolve(e.target.result);
-    req.onerror = (e)=> reject(e.target.error);
+window.addEventListener('firebase-ready', async () => {
+  const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+  
+  onSnapshot(collection(window.dbFB, "albums"), (snapshot) => {
+    albums = [];
+    snapshot.forEach((doc) => {
+      albums.push(doc.data());
+    });
+    renderAlbums();
+    if(currentAlbumId) renderAlbumDetail();
   });
+});
+
+async function saveAlbumToCloud(album) {
+  if(!window.FB_ENABLED) return;
+  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+  await setDoc(doc(window.dbFB, "albums", album.id), album);
 }
 
-function dbGetAllAlbums(){
-  return new Promise((resolve, reject)=>{
-    if(!db){ resolve([]); return; }
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const req = tx.objectStore(STORE_NAME).getAll();
-    req.onsuccess = ()=> resolve(req.result || []);
-    req.onerror = ()=> reject(req.error);
-  });
+async function deleteAlbumFromCloud(id) {
+  if(!window.FB_ENABLED) return;
+  const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+  await deleteDoc(doc(window.dbFB, "albums", id));
 }
 
-function dbPutAlbum(album){
-  if(!db) return;
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  tx.objectStore(STORE_NAME).put(album);
-  tx.onerror = ()=> showToast('Gagal menyimpan perubahan');
-}
-
-function dbDeleteAlbum(id){
-  if(!db) return;
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  tx.objectStore(STORE_NAME).delete(id);
-}
-
-async function initStorage(){
-  try{
-    db = await openDatabase();
-    albums = await dbGetAllAlbums();
-  } catch(err){
-    console.error('IndexedDB tidak tersedia:', err);
-    db = null;
-    showToast('Penyimpanan permanen tidak tersedia di browser ini');
-  }
-  renderAlbums();
-}
-let isAdmin = false;         // true setelah verifikasi kata sandi admin berhasil
-let pendingAdminAction = null; // fungsi yang dijalankan setelah verifikasi admin sukses
-
-/* =========================================================
-   LOCK SCREEN
-========================================================= */
 const lockScreen = document.getElementById('lock-screen');
 const pwInput = document.getElementById('pw-input');
 const unlockBtn = document.getElementById('unlock-btn');
@@ -825,389 +398,213 @@ function tryUnlock(){
     setTimeout(()=> lockScreen.style.display='none', 650);
   } else {
     lockError.classList.add('show');
-    pwInput.classList.add('shake');
-    setTimeout(()=>pwInput.classList.remove('shake'), 400);
     pwInput.value='';
-    pwInput.focus();
   }
 }
 unlockBtn.addEventListener('click', tryUnlock);
 pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
-pwInput.addEventListener('input', ()=> lockError.classList.remove('show'));
-window.addEventListener('load', ()=> pwInput.focus());
-
-/* spotlight cahaya mengikuti kursor di lock screen */
-lockScreen.addEventListener('mousemove', (e)=>{
-  const x = (e.clientX / window.innerWidth) * 100;
-  const y = (e.clientY / window.innerHeight) * 100;
-  lockScreen.style.setProperty('--mx', x + '%');
-  lockScreen.style.setProperty('--my', y + '%');
-});
 
 document.getElementById('lock-btn').addEventListener('click', ()=>{
   lockScreen.style.display='flex';
-  requestAnimationFrame(()=> lockScreen.classList.remove('hidden'));
+  setTimeout(()=> lockScreen.classList.remove('hidden'), 10);
   app.classList.remove('visible');
   pwInput.value='';
-  pwInput.focus();
-  setAdminMode(false);
 });
 
-/* =========================================================
-   MODE ADMIN — diperlukan untuk menghapus foto/album
-========================================================= */
 const adminBtn = document.getElementById('admin-btn');
-const adminBtnLabel = document.getElementById('admin-btn-label');
 const adminModal = document.getElementById('admin-modal');
 const adminPwInput = document.getElementById('admin-pw-input');
-const adminModalError = document.getElementById('admin-modal-error');
 
-function setAdminMode(on){
-  isAdmin = on;
-  adminBtn.classList.toggle('btn-admin-active', isAdmin);
-  adminBtnLabel.textContent = isAdmin ? 'Admin Aktif' : 'Masuk Admin';
-}
-
-function openAdminModal(actionIfSuccess){
-  // jika sudah admin, langsung jalankan aksi tanpa minta password lagi
-  if(isAdmin){
-    if(actionIfSuccess) actionIfSuccess();
-    return;
-  }
-  pendingAdminAction = actionIfSuccess || null;
-  adminModalError.style.display='none';
+function openAdminModal(action){
+  if(isAdmin){ if(action) action(); return; }
+  pendingAdminAction = action || null;
   adminPwInput.value='';
   adminModal.classList.add('visible');
-  setTimeout(()=> adminPwInput.focus(), 80);
-}
-function closeAdminModal(){
-  adminModal.classList.remove('visible');
-  pendingAdminAction = null;
-}
-
-function confirmAdminPassword(){
-  if(adminPwInput.value === ADMIN_PASSWORD){
-    setAdminMode(true);
-    adminModal.classList.remove('visible');
-    const action = pendingAdminAction;
-    pendingAdminAction = null;
-    if(action) action();
-    showToast('Mode admin aktif');
-  } else {
-    adminModalError.style.display='block';
-    adminPwInput.value='';
-    adminPwInput.focus();
-  }
 }
 
 adminBtn.addEventListener('click', ()=>{
   if(isAdmin){
-    setAdminMode(false);
-    showToast('Mode admin dinonaktifkan');
+    isAdmin = false;
+    adminBtn.classList.remove('btn-admin-active');
+    document.getElementById('admin-btn-label').textContent = 'Masuk Admin';
+    showToast('Admin dinonaktifkan');
   } else {
     openAdminModal(null);
   }
 });
-document.getElementById('admin-cancel-btn').addEventListener('click', closeAdminModal);
-document.getElementById('admin-confirm-btn').addEventListener('click', confirmAdminPassword);
-adminPwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') confirmAdminPassword(); });
-adminModal.addEventListener('click', e=>{ if(e.target===adminModal) closeAdminModal(); });
 
-/* =========================================================
-   TOAST
-========================================================= */
-let toastTimer;
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
-}
-
-/* =========================================================
-   RENDER: ALBUM GRID
-========================================================= */
-const albumGrid = document.getElementById('album-grid');
-const albumsEmpty = document.getElementById('albums-empty');
+document.getElementById('admin-confirm-btn').addEventListener('click', ()=>{
+  if(adminPwInput.value === ADMIN_PASSWORD){
+    isAdmin = true;
+    adminBtn.classList.add('btn-admin-active');
+    document.getElementById('admin-btn-label').textContent = 'Admin Aktif';
+    adminModal.classList.remove('visible');
+    if(pendingAdminAction) pendingAdminAction();
+    showToast('Admin aktif');
+  } else {
+    showToast('Sandi admin salah');
+  }
+});
+document.getElementById('admin-cancel-btn').addEventListener('click', ()=> adminModal.classList.remove('visible'));
 
 function renderAlbums(){
+  const grid = document.getElementById('album-grid');
+  const empty = document.getElementById('albums-empty');
   if(albums.length === 0){
-    albumsEmpty.style.display='block';
-    albumGrid.style.display='none';
+    empty.style.display='block';
+    grid.style.display='none';
     return;
   }
-  albumsEmpty.style.display='none';
-  albumGrid.style.display='grid';
-  albumGrid.innerHTML='';
+  empty.style.display='none';
+  grid.style.display='grid';
+  grid.innerHTML='';
 
   albums.forEach(album=>{
     const card = document.createElement('div');
     card.className='album-card';
     const cover = album.photos[0];
-    let coverHtml = `
-      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-        <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-4 4-3-3-5 5"/>
-      </svg>`;
+    let coverHtml = `<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>`;
     if(cover && cover.type === 'video'){
-      coverHtml = `<video src="${cover.src}" muted playsinline></video>
-        <div class="play-badge"><div class="play-circle">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </div></div>`;
+      coverHtml = `<video src="${cover.src}" muted playsinline></video>`;
     } else if(cover){
       coverHtml = `<img src="${cover.src}" alt="">`;
     }
-    const videoCount = album.photos.filter(p=>p.type==='video').length;
-    const photoCount = album.photos.length - videoCount;
-    const metaParts = [];
-    if(photoCount) metaParts.push(photoCount + ' FOTO');
-    if(videoCount) metaParts.push(videoCount + ' VIDEO');
-    const metaText = metaParts.length ? metaParts.join(' · ') : '0 ITEM';
     card.innerHTML = `
-      <div class="album-cover">
-        <div class="perf top">${'<span></span>'.repeat(8)}</div>
-        ${coverHtml}
-        <div class="perf bottom">${'<span></span>'.repeat(8)}</div>
-      </div>
+      <div class="album-cover">${coverHtml}</div>
       <div class="album-info">
         <p class="album-name">${escapeHtml(album.name)}</p>
-        <p class="album-meta">${metaText}</p>
-      </div>
-    `;
+        <p class="album-meta">${album.photos.length} ITEM</p>
+      </div>`;
     card.addEventListener('click', ()=> openAlbum(album.id));
-    albumGrid.appendChild(card);
+    grid.appendChild(card);
   });
 
   const newCard = document.createElement('div');
   newCard.className='new-album-card';
-  newCard.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
-    <span>Album Baru</span>
-  `;
-  newCard.addEventListener('click', openAlbumModal);
-  albumGrid.appendChild(newCard);
+  newCard.innerHTML = `<span>+ Album Baru</span>`;
+  newCard.addEventListener('click', ()=> document.getElementById('album-modal').classList.add('visible'));
+  grid.appendChild(newCard);
 }
 
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
+function escapeHtml(str){ const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
 
-/* =========================================================
-   NEW ALBUM MODAL
-========================================================= */
-const albumModal = document.getElementById('album-modal');
-const newAlbumName = document.getElementById('new-album-name');
-
-function openAlbumModal(){
-  albumModal.classList.add('visible');
-  newAlbumName.value='';
-  setTimeout(()=>newAlbumName.focus(), 80);
-}
-function closeAlbumModal(){ albumModal.classList.remove('visible'); }
-
-document.getElementById('empty-new-album-btn').addEventListener('click', openAlbumModal);
-document.getElementById('cancel-album-btn').addEventListener('click', closeAlbumModal);
-albumModal.addEventListener('click', e=>{ if(e.target===albumModal) closeAlbumModal(); });
-
-document.getElementById('confirm-album-btn').addEventListener('click', createAlbum);
-newAlbumName.addEventListener('keydown', e=>{ if(e.key==='Enter') createAlbum(); });
-
-function createAlbum(){
-  const name = newAlbumName.value.trim();
-  if(!name){ newAlbumName.focus(); return; }
+document.getElementById('confirm-album-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('new-album-name').value.trim();
+  if(!name) return;
   const newAlbum = { id: 'a'+Date.now(), name, photos: [] };
-  albums.push(newAlbum);
-  dbPutAlbum(newAlbum);
-  closeAlbumModal();
-  renderAlbums();
-  showToast('Album "'+name+'" dibuat');
-}
-
-/* =========================================================
-   ALBUM DETAIL VIEW
-========================================================= */
-const albumsView = document.getElementById('albums-view');
-const albumView = document.getElementById('album-view');
-const albumTitle = document.getElementById('album-title');
-const albumCount = document.getElementById('album-count');
-const photoGrid = document.getElementById('photo-grid');
-
-function getCurrentAlbum(){ return albums.find(a=>a.id===currentAlbumId); }
+  await saveAlbumToCloud(newAlbum);
+  document.getElementById('album-modal').classList.remove('visible');
+  document.getElementById('new-album-name').value = '';
+  showToast('Album dibuat');
+});
+document.getElementById('empty-new-album-btn').addEventListener('click', ()=> document.getElementById('album-modal').classList.add('visible'));
+document.getElementById('cancel-album-btn').addEventListener('click', ()=> document.getElementById('album-modal').classList.remove('visible'));
 
 function openAlbum(id){
   currentAlbumId = id;
-  albumsView.style.display='none';
-  albumView.classList.add('visible');
+  document.getElementById('albums-view').style.display='none';
+  document.getElementById('album-view').classList.add('visible');
   renderAlbumDetail();
 }
 
 document.getElementById('back-btn').addEventListener('click', ()=>{
   currentAlbumId = null;
-  albumView.classList.remove('visible');
-  albumsView.style.display='block';
-  renderAlbums();
+  document.getElementById('album-view').classList.remove('visible');
+  document.getElementById('albums-view').style.display='block';
 });
+
+function getCurrentAlbum(){ return albums.find(a=>a.id===currentAlbumId); }
 
 function renderAlbumDetail(){
   const album = getCurrentAlbum();
   if(!album) return;
-  albumTitle.textContent = album.name;
-  const videoCount = album.photos.filter(p=>p.type==='video').length;
-  const photoCount = album.photos.length - videoCount;
-  const parts = [];
-  if(photoCount) parts.push(photoCount + ' foto');
-  if(videoCount) parts.push(videoCount + ' video');
-  albumCount.textContent = parts.length ? parts.join(' · ') : '0 item';
-  photoGrid.innerHTML='';
+  document.getElementById('album-title').textContent = album.name;
+  document.getElementById('album-count').textContent = album.photos.length + ' item';
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML='';
   album.photos.forEach(photo=>{
     const isVideo = photo.type === 'video';
     const tile = document.createElement('div');
     tile.className='photo-tile';
-    tile.innerHTML = `
-      ${isVideo
-        ? `<video src="${photo.src}" muted playsinline></video>
-           <div class="play-badge"><div class="play-circle">
-             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-           </div></div>
-           <span class="type-tag">Video</span>`
-        : `<img src="${photo.src}" alt="${escapeHtml(photo.name)}">`}
-      <div class="del-photo" title="Hapus">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </div>
-    `;
+    tile.innerHTML = isVideo ? `<video src="${photo.src}" muted playsinline></video><span class="type-tag">Video</span>` : `<img src="${photo.src}">`;
+    tile.innerHTML += `<div class="del-photo">✕</div>`;
     tile.querySelector('img, video').addEventListener('click', ()=> openLightbox(photo.src, photo.type));
     tile.querySelector('.del-photo').addEventListener('click', (e)=>{
       e.stopPropagation();
       openAdminModal(()=> deletePhoto(photo.id));
     });
-    photoGrid.appendChild(tile);
+    grid.appendChild(tile);
   });
 }
 
+async function deletePhoto(photoId){
+  const album = getCurrentAlbum();
+  if(!album) return;
+  album.photos = album.photos.filter(p=>p.id!==photoId);
+  await saveAlbumToCloud(album);
+  renderAlbumDetail();
+  showToast('Foto dihapus');
+}
+
 document.getElementById('delete-album-btn').addEventListener('click', ()=>{
-  openAdminModal(()=>{
-    const album = getCurrentAlbum();
-    if(!album) return;
-    if(confirm('Hapus album "'+album.name+'" beserta semua fotonya?')){
-      albums = albums.filter(a=>a.id!==currentAlbumId);
-      dbDeleteAlbum(currentAlbumId);
+  openAdminModal(async ()=>{
+    if(confirm('Hapus album ini?')){
+      await deleteAlbumFromCloud(currentAlbumId);
       currentAlbumId = null;
-      albumView.classList.remove('visible');
-      albumsView.style.display='block';
-      renderAlbums();
+      document.getElementById('album-view').classList.remove('visible');
+      document.getElementById('albums-view').style.display='block';
       showToast('Album dihapus');
     }
   });
 });
 
-function deletePhoto(photoId){
-  const album = getCurrentAlbum();
-  if(!album) return;
-  album.photos = album.photos.filter(p=>p.id!==photoId);
-  dbPutAlbum(album);
-  renderAlbumDetail();
-  showToast('Foto dihapus');
-}
-
-/* =========================================================
-   UPLOAD FOTO
-========================================================= */
 const fileInput = document.getElementById('file-input');
-const dropZone = document.getElementById('drop-zone');
-
 document.getElementById('upload-btn').addEventListener('click', ()=> fileInput.click());
-dropZone.addEventListener('click', ()=> fileInput.click());
+document.getElementById('drop-zone').addEventListener('click', ()=> fileInput.click());
 
-fileInput.addEventListener('change', e=> handleFiles(e.target.files));
-
-['dragenter','dragover'].forEach(evt=>{
-  dropZone.addEventListener(evt, e=>{
-    e.preventDefault(); e.stopPropagation();
-    dropZone.classList.add('drag-over');
-  });
-});
-['dragleave','drop'].forEach(evt=>{
-  dropZone.addEventListener(evt, e=>{
-    e.preventDefault(); e.stopPropagation();
-    dropZone.classList.remove('drag-over');
-  });
-});
-dropZone.addEventListener('drop', e=>{
-  handleFiles(e.dataTransfer.files);
-});
-
-const MAX_VIDEO_MB = 60; // batas ukuran video agar tab browser tidak terlalu berat
-
-function handleFiles(fileList){
+fileInput.addEventListener('change', async (e)=>{
   const album = getCurrentAlbum();
   if(!album) return;
-  const files = Array.from(fileList).filter(f=> f.type.startsWith('image/') || f.type.startsWith('video/'));
-  if(files.length===0) return;
-
-  const tooLarge = files.filter(f=> f.type.startsWith('video/') && f.size > MAX_VIDEO_MB*1024*1024);
-  const validFiles = files.filter(f=> !tooLarge.includes(f));
-  if(tooLarge.length){
-    showToast(tooLarge.length + ' video melebihi ' + MAX_VIDEO_MB + 'MB, dilewati');
-  }
-  if(validFiles.length===0){ fileInput.value=''; return; }
-
-  let loaded = 0;
-  validFiles.forEach(file=>{
-    const isVideo = file.type.startsWith('video/');
+  const files = Array.from(e.target.files);
+  for(let file of files){
     const reader = new FileReader();
-    reader.onload = (e)=>{
-      album.photos.push({
-        id:'p'+Date.now()+Math.random().toString(16).slice(2),
-        src:e.target.result,
-        name:file.name,
-        type: isVideo ? 'video' : 'image'
-      });
-      loaded++;
-      if(loaded === validFiles.length){
-        dbPutAlbum(album);
-        renderAlbumDetail();
-        showToast(validFiles.length + ' item ditambahkan');
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+    await new Promise(resolve => {
+      reader.onload = async (ev) => {
+        album.photos.push({
+          id: 'p' + Date.now() + Math.random().toString(16).slice(2),
+          src: ev.target.result,
+          type: file.type.startsWith('video/') ? 'video' : 'image'
+        });
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  await saveAlbumToCloud(album);
+  renderAlbumDetail();
+  showToast('Foto diunggah');
   fileInput.value='';
-}
-
-/* =========================================================
-   LIGHTBOX
-========================================================= */
-const lightbox = document.getElementById('lightbox');
-const lbImg = document.getElementById('lb-img');
-const lbVideo = document.getElementById('lb-video');
+});
 
 function openLightbox(src, type){
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lb-img');
+  const vid = document.getElementById('lb-video');
   if(type === 'video'){
-    lbImg.style.display='none';
-    lbVideo.style.display='block';
-    lbVideo.src = src;
-    lbVideo.currentTime = 0;
+    img.style.display='none'; vid.style.display='block'; vid.src=src;
   } else {
-    lbVideo.pause();
-    lbVideo.style.display='none';
-    lbVideo.src='';
-    lbImg.style.display='block';
-    lbImg.src = src;
+    vid.style.display='none'; img.style.display='block'; img.src=src;
   }
-  lightbox.classList.add('visible');
+  lb.classList.add('visible');
 }
-function closeLightbox(){
-  lightbox.classList.remove('visible');
-  lbVideo.pause();
-}
-document.getElementById('lb-close').addEventListener('click', closeLightbox);
-lightbox.addEventListener('click', e=>{ if(e.target===lightbox) closeLightbox(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLightbox(); });
+document.getElementById('lb-close').addEventListener('click', ()=> document.getElementById('lightbox').classList.remove('visible'));
 
-/* init */
-initStorage();
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2000);
+}
 </script>
 </body>
 </html>
