@@ -3906,7 +3906,7 @@ async function deletePhoto(
     */
 
     await deleteDoc(
-      photoDocument(
+      adminPhotoDocument(
         album.id,
         photo.id
       )
@@ -4104,7 +4104,7 @@ async function deleteCurrentAlbum(){
       */
 
       await deleteDoc(
-        photoDocument(
+        adminPhotoDocument(
           album.id,
           photo.id
         )
@@ -4118,7 +4118,7 @@ async function deleteCurrentAlbum(){
     */
 
     await deleteDoc(
-      albumDocument(
+      adminPhotoDocument(
         album.id
       )
     );
