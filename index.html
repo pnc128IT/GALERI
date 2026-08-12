@@ -4326,9 +4326,7 @@ dropZone.addEventListener(
 =========================================================
 */
 
-async function handleFiles(
-  fileList
-){
+async function handleFiles(fileList){
 
   if(isAdmin){
 
@@ -4337,18 +4335,15 @@ async function handleFiles(
     );
 
     return;
-
   }
 
 
   const album =
     getCurrentAlbum();
 
-
   if(!album){
 
     return;
-
   }
 
 
@@ -4356,20 +4351,17 @@ async function handleFiles(
     Array.from(fileList || []);
 
 
-  const validTypes =
-    [
-      "image/jpeg",
-      "image/png",
-      "image/webp"
-    ];
+  const validTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
 
 
   const imageFiles =
     files.filter(
       file =>
-        validTypes.includes(
-          file.type
-        )
+        validTypes.includes(file.type)
     );
 
 
@@ -4380,7 +4372,6 @@ async function handleFiles(
     );
 
     return;
-
   }
 
 
@@ -4403,14 +4394,12 @@ async function handleFiles(
     showToast(
       "Beberapa file melebihi batas 20 MB."
     );
-
   }
 
 
   if(validFiles.length === 0){
 
     return;
-
   }
 
 
@@ -4426,20 +4415,24 @@ async function handleFiles(
     0;
 
 
-  dropText.textContent =
-    "Mengunggah foto...";
-
-
   try{
+
+    /*
+     * Upload satu per satu.
+     */
 
     for(
       const file
       of validFiles
     ){
 
+      dropText.textContent =
+        `Mengunggah ${file.name}... 0%`;
+
+
       /*
-        ID unik.
-      */
+       * ID unik.
+       */
 
       const photoId =
         "p_" +
@@ -4447,14 +4440,8 @@ async function handleFiles(
 
 
       /*
-        Storage path.
-
-        users/
-          OWNER_UID/
-            albums/
-              ALBUM_ID/
-                PHOTO_ID
-      */
+       * Storage path.
+       */
 
       const storagePath =
         `users/${ownerUid}/albums/${album.id}/${photoId}`;
@@ -4468,32 +4455,95 @@ async function handleFiles(
 
 
       /*
-        Upload.
-      */
+       * Upload resumable.
+       */
 
-      await uploadBytes(
-        storageRef,
-        file,
-        {
-          contentType:
-            file.type
+      const uploadTask =
+        uploadBytesResumable(
+          storageRef,
+          file,
+          {
+            contentType:
+              file.type
+          }
+        );
+
+
+      /*
+       * Tunggu upload selesai.
+       * Sekaligus tampilkan progress.
+       */
+
+      await new Promise(
+        (resolve, reject) => {
+
+          uploadTask.on(
+            "state_changed",
+
+            snapshot => {
+
+              const progress =
+                Math.round(
+                  (
+                    snapshot.bytesTransferred /
+                    snapshot.totalBytes
+                  ) * 100
+                );
+
+
+              dropText.textContent =
+                `Mengunggah ${file.name}... ${progress}%`;
+
+
+              console.log(
+                `Upload ${file.name}: ${progress}%`
+              );
+
+            },
+
+            error => {
+
+              console.error(
+                "Storage upload error:",
+                error
+              );
+
+              reject(error);
+
+            },
+
+            () => {
+
+              resolve();
+
+            }
+          );
+
         }
       );
 
 
       /*
-        Download URL.
-      */
+       * Upload berhasil.
+       */
+
+      dropText.textContent =
+        `Memproses ${file.name}...`;
+
+
+      /*
+       * Ambil URL.
+       */
 
       const downloadURL =
         await getDownloadURL(
-          storageRef
+          uploadTask.snapshot.ref
         );
 
 
       /*
-        Metadata Firestore.
-      */
+       * Simpan metadata Firestore.
+       */
 
       await setDoc(
         photoDocument(
@@ -4524,8 +4574,8 @@ async function handleFiles(
 
 
       /*
-        Update state.
-      */
+       * Update state.
+       */
 
       album.photos.push({
 
@@ -4582,6 +4632,7 @@ async function handleFiles(
 
     dropText.textContent =
       originalText;
+
 
     fileInput.value =
       "";
