@@ -1,1001 +1,722 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FOTO — Arsip Foto Pribadi</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --bg-0: #121016;
-            --bg-1: #1b1820;
-            --bg-2: #242028;
-            --line: #332e39;
-            --amber: #e2a044;
-            --amber-dim: #8a6a34;
-            --amber-glow: rgba(226, 160, 68, 0.28);
-            --paper: #f3ede0;
-            --muted: #948d9c;
-            --red: #c1666b;
-            --radius: 14px;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background:
-                radial-gradient(1100px 600px at 50% -10%, rgba(226, 160, 68, 0.07), transparent 60%),
-                var(--bg-0);
-            color: var(--paper);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        ::selection {
-            background: var(--amber-glow);
-            color: var(--paper);
-        }
-
-        /* ---------- scrollbar ---------- */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-0);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--bg-2);
-            border-radius: 10px;
-        }
-
-        /* ================= LOCK SCREEN ================= */
-        #lock-screen {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            background:
-                radial-gradient(650px 450px at 50% 38%, var(--amber-glow), transparent 65%),
-                var(--bg-0);
-            transition: opacity .6s ease, filter .6s ease;
-        }
-
-        #lock-screen.hidden {
-            opacity: 0;
-            filter: blur(6px);
-            pointer-events: none;
-        }
-
-        .lock-card {
-            width: min(360px, 88vw);
-            text-align: center;
-        }
-
-        .aperture {
-            width: 76px;
-            height: 76px;
-            margin: 0 auto 28px;
-            position: relative;
-        }
-
-        .aperture svg {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .aperture circle.ring {
-            fill: none;
-            stroke: var(--amber-dim);
-            stroke-width: 1.4;
-        }
-
-        .aperture .blade {
-            fill: none;
-            stroke: var(--amber);
-            stroke-width: 1.6;
-            stroke-linecap: round;
-            transform-origin: 38px 38px;
-            animation: blade-breathe 4s ease-in-out infinite;
-        }
-
-        @keyframes blade-breathe {
-
-            0%,
-            100% {
-                opacity: .55;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        .lock-eyebrow {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            letter-spacing: .28em;
-            color: var(--amber-dim);
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .lock-title {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 500;
-            font-size: 34px;
-            margin: 0 0 6px;
-            color: var(--paper);
-        }
-
-        .lock-sub {
-            color: var(--muted);
-            font-size: 13.5px;
-            margin: 0 0 34px;
-        }
-
-        .pw-row {
-            position: relative;
-            margin-bottom: 18px;
-        }
-
-        #pw-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--line);
-            color: var(--paper);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 20px;
-            letter-spacing: .35em;
-            text-align: center;
-            padding: 10px 4px 12px;
-            outline: none;
-            transition: border-color .25s ease;
-        }
-
-        #pw-input:focus {
-            border-color: var(--amber);
-        }
-
-        #pw-input.shake {
-            animation: shake .38s ease;
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            20% {
-                transform: translateX(-8px);
-            }
-
-            40% {
-                transform: translateX(7px);
-            }
-
-            60% {
-                transform: translateX(-5px);
-            }
-
-            80% {
-                transform: translateX(4px);
-            }
-        }
-
-        #unlock-btn {
-            width: 100%;
-            background: var(--amber);
-            color: #1b1305;
-            border: none;
-            border-radius: 999px;
-            padding: 13px 18px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12.5px;
-            letter-spacing: .14em;
-            text-transform: uppercase;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
-            box-shadow: 0 8px 24px -8px var(--amber-glow);
-        }
-
-        #unlock-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 28px -8px var(--amber-glow);
-        }
-
-        #unlock-btn:active {
-            transform: translateY(0);
-        }
-
-        .lock-error {
-            min-height: 18px;
-            color: var(--red);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11.5px;
-            letter-spacing: .05em;
-            margin-top: 14px;
-            opacity: 0;
-            transition: opacity .2s ease;
-        }
-
-        .lock-error.show {
-            opacity: 1;
-        }
-
-        /* ================= APP ================= */
-        #app {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 28px 80px;
-            display: none;
-        }
-
-        #app.visible {
-            display: block;
-        }
-
-        header.topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 34px 0 26px;
-            border-bottom: 1px solid var(--line);
-            margin-bottom: 34px;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-mark {
-            width: 30px;
-            height: 30px;
-            flex-shrink: 0;
-        }
-
-        .brand-mark svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .brand-text .eyebrow {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 10px;
-            letter-spacing: .25em;
-            color: var(--amber-dim);
-            text-transform: uppercase;
-        }
-
-        .brand-text h1 {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 500;
-            font-size: 23px;
-            margin: 1px 0 0;
-            color: var(--paper);
-        }
-
-        .topbar-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .btn {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11.5px;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            padding: 10px 16px;
-            border-radius: 999px;
-            cursor: pointer;
-            border: 1px solid var(--line);
-            background: var(--bg-1);
-            color: var(--paper);
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            transition: border-color .2s ease, background .2s ease, transform .15s ease;
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            border-color: var(--amber-dim);
-            background: var(--bg-2);
-            transform: translateY(-1px);
-        }
-
-        .btn-primary {
-            background: var(--amber);
-            color: #1b1305;
-            border-color: var(--amber);
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            background: #eab35e;
-            border-color: #eab35e;
-        }
-
-        .btn-ghost {
-            background: transparent;
-        }
-
-        .btn-danger {
-            border-color: rgba(193, 102, 107, .4);
-            color: var(--red);
-            background: transparent;
-        }
-
-        .btn-danger:hover {
-            background: rgba(193, 102, 107, .1);
-            border-color: var(--red);
-        }
-
-        .btn svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* ---------- section label ---------- */
-        .section-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .section-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            letter-spacing: .22em;
-            color: var(--muted);
-            text-transform: uppercase;
-        }
-
-        /* ================= ALBUM GRID ================= */
-        #albums-view {}
-
-        .album-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-            gap: 22px;
-        }
-
-        .album-card {
-            background: var(--bg-1);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-            position: relative;
-        }
-
-        .album-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--amber-dim);
-            box-shadow: 0 16px 32px -18px rgba(0, 0, 0, .6);
-        }
-
-        .album-cover {
-            height: 150px;
-            background: var(--bg-2);
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .album-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .album-cover .empty-icon {
-            width: 34px;
-            height: 34px;
-            color: var(--line);
-        }
-
-        .perf {
-            position: absolute;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-around;
-            padding: 0 10px;
-        }
-
-        .perf span {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--bg-0);
-        }
-
-        .perf.top {
-            top: 8px;
-        }
-
-        .perf.bottom {
-            bottom: 8px;
-        }
-
-        .album-info {
-            padding: 14px 16px 16px;
-        }
-
-        .album-name {
-            font-family: 'Fraunces', serif;
-            font-weight: 500;
-            font-size: 16.5px;
-            color: var(--paper);
-            margin: 0 0 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .album-meta {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 10.5px;
-            color: var(--muted);
-            letter-spacing: .06em;
-        }
-
-        .new-album-card {
-            border: 1.5px dashed var(--line);
-            border-radius: var(--radius);
-            min-height: 216px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            color: var(--muted);
-            transition: border-color .2s ease, color .2s ease, background .2s ease;
-            background: transparent;
-        }
-
-        .new-album-card:hover {
-            border-color: var(--amber-dim);
-            color: var(--amber);
-            background: rgba(226, 160, 68, 0.04);
-        }
-
-        .new-album-card svg {
-            width: 26px;
-            height: 26px;
-        }
-
-        .new-album-card span {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-        }
-
-        /* ---------- empty state ---------- */
-        .empty-state {
-            text-align: center;
-            padding: 70px 20px;
-            border: 1px dashed var(--line);
-            border-radius: var(--radius);
-        }
-
-        .empty-state svg {
-            width: 44px;
-            height: 44px;
-            color: var(--line);
-            margin-bottom: 18px;
-        }
-
-        .empty-state h3 {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 500;
-            font-size: 21px;
-            margin: 0 0 8px;
-            color: var(--paper);
-        }
-
-        .empty-state p {
-            color: var(--muted);
-            font-size: 13.5px;
-            margin: 0 0 22px;
-        }
-
-        /* ================= ALBUM DETAIL ================= */
-        #album-view {
-            display: none;
-        }
-
-        #album-view.visible {
-            display: block;
-        }
-
-        .back-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 22px;
-            flex-wrap: wrap;
-        }
-
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--muted);
-            cursor: pointer;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11.5px;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            background: none;
-            border: none;
-            padding: 0;
-            transition: color .2s ease;
-        }
-
-        .back-btn:hover {
-            color: var(--amber);
-        }
-
-        .back-btn svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .album-header {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 26px;
-        }
-
-        .album-header h2 {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 500;
-            font-size: 32px;
-            margin: 0;
-            color: var(--paper);
-        }
-
-        .album-header .count {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            color: var(--muted);
-            letter-spacing: .08em;
-            margin-top: 4px;
-        }
-
-        .album-header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        #drop-zone {
-            border: 1.5px dashed var(--line);
-            border-radius: var(--radius);
-            padding: 34px 20px;
-            text-align: center;
-            margin-bottom: 28px;
-            cursor: pointer;
-            transition: border-color .2s ease, background .2s ease;
-            color: var(--muted);
-        }
-
-        #drop-zone.drag-over {
-            border-color: var(--amber);
-            background: rgba(226, 160, 68, 0.06);
-            color: var(--amber);
-        }
-
-        #drop-zone svg {
-            width: 26px;
-            height: 26px;
-            margin-bottom: 10px;
-        }
-
-        #drop-zone p {
-            margin: 0;
-            font-size: 13px;
-        }
-
-        #drop-zone span.hint {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 10.5px;
-            letter-spacing: .08em;
-            color: var(--amber-dim);
-            display: block;
-            margin-top: 6px;
-        }
-
-        #file-input {
-            display: none;
-        }
-
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 14px;
-        }
-
-        .photo-tile {
-            position: relative;
-            aspect-ratio: 1/1;
-            border-radius: 10px;
-            overflow: hidden;
-            background: var(--bg-2);
-            border: 1px solid var(--line);
-            cursor: pointer;
-        }
-
-        .photo-tile img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform .35s ease;
-        }
-
-        .photo-tile:hover img {
-            transform: scale(1.06);
-        }
-
-        .photo-tile .del-photo {
-            position: absolute;
-            top: 7px;
-            right: 7px;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: rgba(18, 16, 22, 0.75);
-            border: 1px solid rgba(255, 255, 255, .12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity .18s ease, background .18s ease;
-            color: var(--paper);
-        }
-
-        .photo-tile:hover .del-photo {
-            opacity: 1;
-        }
-
-        .del-photo:hover {
-            background: var(--red);
-            border-color: var(--red);
-        }
-
-        .del-photo svg {
-            width: 13px;
-            height: 13px;
-        }
-
-        /* ================= LIGHTBOX ================= */
-        #lightbox {
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: rgba(10, 9, 12, 0.92);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-
-        #lightbox.visible {
-            display: flex;
-        }
-
-        #lightbox img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 8px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, .5);
-        }
-
-        #lightbox .lb-close {
-            position: absolute;
-            top: 26px;
-            right: 30px;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: var(--bg-1);
-            border: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--paper);
-        }
-
-        #lightbox .lb-close:hover {
-            border-color: var(--amber-dim);
-        }
-
-        #lightbox .lb-close svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* ================= MODAL ================= */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 150;
-            background: rgba(10, 9, 12, 0.72);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-overlay.visible {
-            display: flex;
-        }
-
-        .modal-box {
-            width: min(380px, 100%);
-            background: var(--bg-1);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 30px 26px 26px;
-        }
-
-        .modal-box h3 {
-            font-family: 'Fraunces', serif;
-            font-style: italic;
-            font-weight: 500;
-            font-size: 21px;
-            margin: 0 0 18px;
-            color: var(--paper);
-        }
-
-        .modal-box input[type="text"] {
-            width: 100%;
-            background: var(--bg-2);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 11px 13px;
-            color: var(--paper);
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            outline: none;
-            margin-bottom: 20px;
-            transition: border-color .2s ease;
-        }
-
-        .modal-box input[type="text"]:focus {
-            border-color: var(--amber-dim);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 26px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--bg-2);
-            border: 1px solid var(--line);
-            padding: 12px 20px;
-            border-radius: 999px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12px;
-            letter-spacing: .04em;
-            color: var(--paper);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .25s ease, transform .25s ease;
-            z-index: 250;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        @media (max-width:560px) {
-            .lock-title {
-                font-size: 28px;
-            }
-
-            .album-header h2 {
-                font-size: 26px;
-            }
-
-            header.topbar {
-                padding-top: 24px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOTO — Arsip Foto Pribadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#121016;
+    --bg-1:#1b1820;
+    --bg-2:#242028;
+    --line:#332e39;
+    --amber:#e2a044;
+    --amber-dim:#8a6a34;
+    --amber-glow:rgba(226,160,68,0.28);
+    --paper:#f3ede0;
+    --muted:#948d9c;
+    --red:#c1666b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 600px at 50% -10%, rgba(226,160,68,0.07), transparent 60%),
+      var(--bg-0);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--amber-glow);color:var(--paper);}
+
+  /* ---------- scrollbar ---------- */
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg-0);}
+  ::-webkit-scrollbar-thumb{background:var(--bg-2);border-radius:10px;}
+
+  /* ================= AMBIENT LIGHT LAYER ================= */
+  .ambient-glow{
+    position:fixed;inset:0;z-index:0;
+    overflow:hidden;pointer-events:none;
+  }
+  .orb{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:.5;
+    will-change:transform;
+  }
+  .orb-1{
+    width:520px;height:520px;
+    top:-180px;left:-120px;
+    background:radial-gradient(circle, var(--amber) 0%, transparent 70%);
+    animation:drift1 22s ease-in-out infinite;
+    opacity:.22;
+  }
+  .orb-2{
+    width:460px;height:460px;
+    bottom:-160px;right:-100px;
+    background:radial-gradient(circle, #7aa3c9 0%, transparent 70%);
+    animation:drift2 26s ease-in-out infinite;
+    opacity:.14;
+  }
+  .orb-3{
+    width:340px;height:340px;
+    top:40%;left:60%;
+    background:radial-gradient(circle, var(--amber) 0%, transparent 70%);
+    animation:drift3 19s ease-in-out infinite;
+    opacity:.12;
+  }
+  @keyframes drift1{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(60px,50px) scale(1.12);}
+  }
+  @keyframes drift2{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(-50px,-40px) scale(1.08);}
+  }
+  @keyframes drift3{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(-40px,30px) scale(1.15);}
+  }
+
+  .grain{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  #lock-screen, #app, .modal-overlay, #lightbox{ position:relative; z-index:2; }
+
+  /* ================= LOCK SCREEN ================= */
+  #lock-screen{
+    position:fixed;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;
+    background:
+      radial-gradient(600px 500px at var(--mx,50%) var(--my,38%), var(--amber-glow), transparent 60%),
+      radial-gradient(900px 700px at 50% 100%, rgba(122,163,201,0.08), transparent 60%),
+      var(--bg-0);
+    transition:opacity .6s ease, filter .6s ease, background .3s ease;
+  }
+  #lock-screen.hidden{opacity:0;filter:blur(6px);pointer-events:none;}
+
+  .lock-card{
+    width:min(360px, 88vw);
+    text-align:center;
+  }
+  .aperture{
+    width:76px;height:76px;margin:0 auto 28px;
+    position:relative;
+  }
+  .aperture::before{
+    content:'';
+    position:absolute;inset:-22px;
+    border-radius:50%;
+    background:radial-gradient(circle, var(--amber-glow) 0%, transparent 72%);
+    filter:blur(6px);
+    animation:ring-pulse 3.2s ease-in-out infinite;
+  }
+  @keyframes ring-pulse{
+    0%,100%{opacity:.4;transform:scale(.92);}
+    50%{opacity:.9;transform:scale(1.08);}
+  }
+  .aperture svg{width:100%;height:100%;display:block;position:relative;}
+  .aperture circle.ring{
+    fill:none;stroke:var(--amber-dim);stroke-width:1.4;
+  }
+  .aperture .blade{
+    fill:none;stroke:var(--amber);stroke-width:1.6;
+    stroke-linecap:round;
+    transform-origin:38px 38px;
+    animation:blade-breathe 4s ease-in-out infinite;
+  }
+  @keyframes blade-breathe{
+    0%,100%{opacity:.55;}
+    50%{opacity:1;}
+  }
+
+  .lock-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:.28em;
+    color:var(--amber-dim);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .lock-title{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:34px;
+    margin:0 0 6px;
+    color:var(--paper);
+    text-shadow:0 0 30px rgba(226,160,68,0.35);
+  }
+  .lock-sub{
+    color:var(--muted);
+    font-size:13.5px;
+    margin:0 0 34px;
+  }
+
+  .pw-row{
+    position:relative;
+    margin-bottom:18px;
+  }
+  #pw-input{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:20px;
+    letter-spacing:.35em;
+    text-align:center;
+    padding:10px 4px 12px;
+    outline:none;
+    transition:border-color .25s ease;
+  }
+  #pw-input:focus{border-color:var(--amber);}
+  #pw-input.shake{animation:shake .38s ease;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-8px);}
+    40%{transform:translateX(7px);}
+    60%{transform:translateX(-5px);}
+    80%{transform:translateX(4px);}
+  }
+
+  #unlock-btn{
+    width:100%;
+    background:var(--amber);
+    color:#1b1305;
+    border:none;
+    border-radius:999px;
+    padding:13px 18px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-weight:600;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transition:transform .15s ease, box-shadow .15s ease, background .2s ease;
+    box-shadow:0 8px 24px -8px var(--amber-glow);
+  }
+  #unlock-btn::after{
+    content:'';
+    position:absolute;top:0;left:-60%;
+    width:40%;height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
+    transform:skewX(-20deg);
+    transition:left .6s ease;
+  }
+  #unlock-btn:hover::after{left:130%;}
+  #unlock-btn:hover{transform:translateY(-1px);box-shadow:0 12px 32px -6px var(--amber-glow);}
+  #unlock-btn:active{transform:translateY(0);}
+
+  .lock-error{
+    min-height:18px;
+    color:var(--red);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:.05em;
+    margin-top:14px;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .lock-error.show{opacity:1;}
+
+  /* ================= APP ================= */
+  #app{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px 80px;
+    display:none;
+  }
+  #app.visible{display:block;}
+
+  header.topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:34px 0 26px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:34px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;
+  }
+  .brand-mark{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(226,160,68,0.55));}
+  .brand-mark svg{width:100%;height:100%;}
+  .brand-text .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;letter-spacing:.25em;
+    color:var(--amber-dim);text-transform:uppercase;
+  }
+  .brand-text h1{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:23px;margin:1px 0 0;color:var(--paper);
+  }
+
+  .topbar-actions{display:flex;gap:10px;align-items:center;}
+  .btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:var(--bg-1);
+    color:var(--paper);
+    display:inline-flex;align-items:center;gap:7px;
+    transition:border-color .2s ease, background .2s ease, transform .15s ease, box-shadow .2s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--amber-dim);background:var(--bg-2);transform:translateY(-1px);box-shadow:0 6px 18px -6px rgba(226,160,68,0.25);}
+  .btn-primary{
+    background:var(--amber);color:#1b1305;border-color:var(--amber);font-weight:600;
+    box-shadow:0 6px 20px -6px var(--amber-glow);
+  }
+  .btn-primary:hover{background:#eab35e;border-color:#eab35e;box-shadow:0 10px 26px -6px rgba(226,160,68,0.55);}
+  .btn-ghost{background:transparent;}
+  .btn-danger{border-color:rgba(193,102,107,.4);color:var(--red);background:transparent;}
+  .btn-danger:hover{background:rgba(193,102,107,.1);border-color:var(--red);box-shadow:0 6px 18px -8px rgba(193,102,107,0.4);}
+  .btn svg{width:14px;height:14px;}
+  .btn-admin-active{
+    border-color:var(--amber);color:var(--amber);background:rgba(226,160,68,0.08);
+    box-shadow:0 0 0 1px rgba(226,160,68,0.25), 0 6px 20px -6px var(--amber-glow);
+  }
+  .btn-admin-active:hover{background:rgba(226,160,68,0.14);}
+
+  /* ---------- delete controls locked (non-admin) ---------- */
+  .del-photo.locked{opacity:.55 !important;}
+  .del-photo.locked svg{width:12px;height:12px;}
+
+  /* ---------- section label ---------- */
+  .section-row{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin-bottom:18px;flex-wrap:wrap;gap:10px;
+  }
+  .section-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:.22em;
+    color:var(--muted);text-transform:uppercase;
+  }
+
+  /* ================= ALBUM GRID ================= */
+  #albums-view{}
+  .album-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:22px;
+  }
+  .album-card{
+    background:rgba(27,24,32,0.75);
+    backdrop-filter:blur(6px);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    position:relative;
+  }
+  .album-card::before{
+    content:'';
+    position:absolute;inset:0;
+    border-radius:var(--radius);
+    padding:1px;
+    background:linear-gradient(135deg, rgba(226,160,68,0), rgba(226,160,68,0));
+    transition:background .3s ease;
+    pointer-events:none;
+  }
+  .album-card:hover{
+    transform:translateY(-5px);
+    border-color:var(--amber-dim);
+    box-shadow:0 20px 40px -18px rgba(0,0,0,.65), 0 0 24px -8px var(--amber-glow);
+  }
+  .album-cover{
+    height:150px;
+    background:var(--bg-2);
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .album-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .album-cover .empty-icon{width:34px;height:34px;color:var(--line);}
+  .perf{
+    position:absolute;left:0;right:0;
+    display:flex;justify-content:space-around;
+    padding:0 10px;
+  }
+  .perf span{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--bg-0);
+  }
+  .perf.top{top:8px;}
+  .perf.bottom{bottom:8px;}
+  .album-info{padding:14px 16px 16px;}
+  .album-name{
+    font-family:'Fraunces',serif;font-weight:500;font-size:16.5px;
+    color:var(--paper);margin:0 0 4px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .album-meta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;color:var(--muted);letter-spacing:.06em;
+  }
+
+  .new-album-card{
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    min-height:216px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:10px;cursor:pointer;
+    color:var(--muted);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+    background:transparent;
+  }
+  .new-album-card:hover{border-color:var(--amber-dim);color:var(--amber);background:rgba(226,160,68,0.04);}
+  .new-album-card svg{width:26px;height:26px;}
+  .new-album-card span{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;
+    letter-spacing:.12em;text-transform:uppercase;
+  }
+
+  /* ---------- empty state ---------- */
+  .empty-state{
+    text-align:center;padding:70px 20px;
+    border:1px dashed var(--line);border-radius:var(--radius);
+  }
+  .empty-state svg{width:44px;height:44px;color:var(--line);margin-bottom:18px;}
+  .empty-state h3{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:21px;margin:0 0 8px;color:var(--paper);
+  }
+  .empty-state p{color:var(--muted);font-size:13.5px;margin:0 0 22px;}
+
+  /* ================= ALBUM DETAIL ================= */
+  #album-view{display:none;}
+  #album-view.visible{display:block;}
+  .back-row{
+    display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;
+  }
+  .back-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--muted);cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;
+    background:none;border:none;padding:0;
+    transition:color .2s ease;
+  }
+  .back-btn:hover{color:var(--amber);}
+  .back-btn svg{width:14px;height:14px;}
+
+  .album-header{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    margin-bottom:26px;
+  }
+  .album-header h2{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:32px;margin:0;color:var(--paper);
+  }
+  .album-header .count{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+    letter-spacing:.08em;margin-top:4px;
+  }
+  .album-header-actions{display:flex;gap:10px;}
+
+  #drop-zone{
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    padding:34px 20px;
+    text-align:center;
+    margin-bottom:28px;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+    color:var(--muted);
+  }
+  #drop-zone.drag-over{
+    border-color:var(--amber);
+    background:rgba(226,160,68,0.06);
+    color:var(--amber);
+    box-shadow:0 0 30px -6px var(--amber-glow), inset 0 0 30px -12px var(--amber-glow);
+  }
+  #drop-zone svg{width:26px;height:26px;margin-bottom:10px;}
+  #drop-zone p{margin:0;font-size:13px;}
+  #drop-zone span.hint{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;
+    color:var(--amber-dim);display:block;margin-top:6px;
+  }
+  #file-input{display:none;}
+
+  .photo-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
+    gap:14px;
+  }
+  .photo-tile{
+    position:relative;
+    aspect-ratio:1/1;
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    cursor:pointer;
+    transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+  }
+  .photo-tile:hover{
+    border-color:var(--amber-dim);
+    box-shadow:0 12px 28px -10px rgba(0,0,0,.6), 0 0 18px -6px var(--amber-glow);
+    transform:translateY(-2px);
+  }
+  .photo-tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease;}
+  .photo-tile:hover img{transform:scale(1.06);}
+  .photo-tile .del-photo{
+    position:absolute;top:7px;right:7px;
+    width:26px;height:26px;border-radius:50%;
+    background:rgba(18,16,22,0.75);
+    border:1px solid rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .18s ease, background .18s ease;
+    color:var(--paper);
+  }
+  .photo-tile:hover .del-photo{opacity:1;}
+  .del-photo:hover{background:var(--red);border-color:var(--red);}
+  .del-photo svg{width:13px;height:13px;}
+
+  /* ================= LIGHTBOX ================= */
+  #lightbox{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(10,9,12,0.92);
+    display:none;align-items:center;justify-content:center;
+    padding:40px;
+  }
+  #lightbox.visible{display:flex;}
+  #lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 30px 60px rgba(0,0,0,.5);}
+  #lightbox .lb-close{
+    position:absolute;top:26px;right:30px;
+    width:38px;height:38px;border-radius:50%;
+    background:var(--bg-1);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper);
+  }
+  #lightbox .lb-close:hover{border-color:var(--amber-dim);}
+  #lightbox .lb-close svg{width:16px;height:16px;}
+
+  /* ================= MODAL ================= */
+  .modal-overlay{
+    position:fixed;inset:0;z-index:150;
+    background:rgba(10,9,12,0.72);
+    display:none;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.visible{display:flex;}
+  .modal-box{
+    width:min(380px, 100%);
+    background:var(--bg-1);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:30px 26px 26px;
+  }
+  .modal-box h3{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:21px;margin:0 0 18px;color:var(--paper);
+  }
+  .modal-box input[type="text"]{
+    width:100%;background:var(--bg-2);border:1px solid var(--line);
+    border-radius:8px;padding:11px 13px;color:var(--paper);
+    font-family:'Inter',sans-serif;font-size:14px;outline:none;
+    margin-bottom:20px;transition:border-color .2s ease;
+  }
+  .modal-box input[type="text"]:focus{border-color:var(--amber-dim);}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--bg-2);border:1px solid var(--line);
+    padding:12px 20px;border-radius:999px;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.04em;
+    color:var(--paper);opacity:0;pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:250;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:560px){
+    .lock-title{font-size:28px;}
+    .album-header h2{font-size:26px;}
+    header.topbar{padding-top:24px;}
+  }
+</style>
 </head>
-
 <body>
 
-    <!-- ============ LOCK SCREEN ============ -->
-    <div id="lock-screen">
-        <div class="lock-card">
-            <div class="aperture">
-                <svg viewBox="0 0 76 76">
-                    <circle class="ring" cx="38" cy="38" r="34" />
-                    <g class="blade">
-                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(0 38 38)" />
-                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(60 38 38)" />
-                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(120 38 38)" />
-                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(180 38 38)" />
-                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(240 38 38)" />
-                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(300 38 38)" />
-                    </g>
-                </svg>
-            </div>
-            <div class="lock-eyebrow">Akses Privat</div>
-            <h1 class="lock-title">FOTO</h1>
-            <p class="lock-sub">Masukkan kata sandi untuk membuka arsip foto Anda</p>
-            <div class="pw-row">
-                <input type="password" id="pw-input" placeholder="••••••" autocomplete="off" maxlength="24">
-            </div>
-            <button id="unlock-btn">Buka FOTO</button>
-            <div class="lock-error" id="lock-error">Kata sandi salah, coba lagi.</div>
-        </div>
-    </div>
+<!-- ambient light layer -->
+<div class="ambient-glow" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
 
-    <!-- ============ APP ============ -->
-    <div id="app">
-        <header class="topbar">
-            <div class="brand">
-                <div class="brand-mark">
-                    <svg viewBox="0 0 30 30" fill="none">
-                        <circle cx="15" cy="15" r="13" stroke="#e2a044" stroke-width="1.4" />
-                        <circle cx="15" cy="15" r="4.5" stroke="#e2a044" stroke-width="1.4" />
-                    </svg>
-                </div>
-                <div class="brand-text">
-                    <div class="eyebrow">Arsip Pribadi</div>
-                    <h1>FOTO</h1>
-                </div>
-            </div>
-            <div class="topbar-actions">
-                <button class="btn btn-ghost" id="lock-btn">
+<!-- ============ LOCK SCREEN ============ -->
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="aperture">
+      <svg viewBox="0 0 76 76">
+        <circle class="ring" cx="38" cy="38" r="34"/>
+        <g class="blade">
+          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(0 38 38)"/>
+          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(60 38 38)"/>
+          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(120 38 38)"/>
+          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(180 38 38)"/>
+          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(240 38 38)"/>
+          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(300 38 38)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="lock-eyebrow">Akses Privat</div>
+    <h1 class="lock-title">FOTO</h1>
+    <p class="lock-sub">Masukkan kata sandi untuk membuka arsip foto Anda</p>
+    <div class="pw-row">
+      <input type="password" id="pw-input" placeholder="••••••" autocomplete="off" maxlength="24">
+    </div>
+    <button id="unlock-btn">Buka FOTO</button>
+    <div class="lock-error" id="lock-error">Kata sandi salah, coba lagi.</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 30 30" fill="none">
+          <circle cx="15" cy="15" r="13" stroke="#e2a044" stroke-width="1.4"/>
+          <circle cx="15" cy="15" r="4.5" stroke="#e2a044" stroke-width="1.4"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="eyebrow">Arsip Pribadi</div>
+        <h1>FOTO</h1>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="admin-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5"/></svg>
+        <span id="admin-btn-label">Masuk Admin</span>
+      </button>
+      <button class="btn btn-ghost" id="lock-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
         Kunci
       </button>
-            </div>
-        </header>
+    </div>
+  </header>
 
-        <!-- ---------- ALBUM GRID VIEW ---------- -->
-        <div id="albums-view">
-            <div class="section-row">
-                <span class="section-label">Album</span>
-            </div>
-            <div id="albums-empty" class="empty-state" style="display:none;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="9" cy="10" r="1.6" />
-                    <path d="M21 16l-5-5-4 4-3-3-5 5" />
-                </svg>
-                <h3>Belum ada album</h3>
-                <p>Buat album pertama untuk mulai menyimpan foto Anda.</p>
-                <button class="btn btn-primary" id="empty-new-album-btn">+ Buat Album</button>
-            </div>
-            <div class="album-grid" id="album-grid" style="display:none;"></div>
-        </div>
+  <!-- ---------- ALBUM GRID VIEW ---------- -->
+  <div id="albums-view">
+    <div class="section-row">
+      <span class="section-label">Album</span>
+    </div>
+    <div id="albums-empty" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-4 4-3-3-5 5"/></svg>
+      <h3>Belum ada album</h3>
+      <p>Buat album pertama untuk mulai menyimpan foto Anda.</p>
+      <button class="btn btn-primary" id="empty-new-album-btn">+ Buat Album</button>
+    </div>
+    <div class="album-grid" id="album-grid" style="display:none;"></div>
+  </div>
 
-        <!-- ---------- ALBUM DETAIL VIEW ---------- -->
-        <div id="album-view">
-            <div class="back-row">
-                <button class="back-btn" id="back-btn">
+  <!-- ---------- ALBUM DETAIL VIEW ---------- -->
+  <div id="album-view">
+    <div class="back-row">
+      <button class="back-btn" id="back-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
         Semua Album
       </button>
-            </div>
-            <div class="album-header">
-                <div>
-                    <h2 id="album-title">Album</h2>
-                    <div class="count" id="album-count">0 foto</div>
-                </div>
-                <div class="album-header-actions">
-                    <button class="btn btn-danger" id="delete-album-btn">Hapus Album</button>
-                    <button class="btn btn-primary" id="upload-btn">+ Unggah Foto</button>
-                </div>
-            </div>
-
-            <div id="drop-zone">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
-                    <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-                </svg>
-                <p>Seret &amp; lepas foto di sini, atau klik untuk memilih</p>
-                <span class="hint">JPG · PNG · WEBP</span>
-                <input type="file" id="file-input" accept="image/*" multiple>
-            </div>
-
-            <div class="photo-grid" id="photo-grid"></div>
-        </div>
+    </div>
+    <div class="album-header">
+      <div>
+        <h2 id="album-title">Album</h2>
+        <div class="count" id="album-count">0 foto</div>
+      </div>
+      <div class="album-header-actions">
+        <button class="btn btn-danger" id="delete-album-btn">Hapus Album</button>
+        <button class="btn btn-primary" id="upload-btn">+ Unggah Foto</button>
+      </div>
     </div>
 
-    <!-- ============ NEW ALBUM MODAL ============ -->
-    <div class="modal-overlay" id="album-modal">
-        <div class="modal-box">
-            <h3>Album Baru</h3>
-            <input type="text" id="new-album-name" placeholder="Nama album, mis. Liburan Bali" maxlength="40">
-            <div class="modal-actions">
-                <button class="btn btn-ghost" id="cancel-album-btn">Batal</button>
-                <button class="btn btn-primary" id="confirm-album-btn">Buat</button>
-            </div>
-        </div>
+    <div id="drop-zone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      <p>Seret &amp; lepas foto di sini, atau klik untuk memilih</p>
+      <span class="hint">JPG · PNG · WEBP</span>
+      <input type="file" id="file-input" accept="image/*" multiple>
     </div>
 
-    <!-- ============ LIGHTBOX ============ -->
-    <div id="lightbox">
-        <div class="lb-close" id="lb-close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-        </div>
-        <img id="lb-img" src="" alt="Foto">
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+</div>
+
+<!-- ============ NEW ALBUM MODAL ============ -->
+<div class="modal-overlay" id="album-modal">
+  <div class="modal-box">
+    <h3>Album Baru</h3>
+    <input type="text" id="new-album-name" placeholder="Nama album, mis. Liburan Bali" maxlength="40">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancel-album-btn">Batal</button>
+      <button class="btn btn-primary" id="confirm-album-btn">Buat</button>
     </div>
+  </div>
+</div>
 
-    <div class="toast" id="toast"></div>
+<!-- ============ ADMIN AUTH MODAL ============ -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-box">
+    <h3>Verifikasi Admin</h3>
+    <p style="color:var(--muted);font-size:12.5px;margin:-10px 0 18px;">Hanya admin yang dapat menghapus foto atau album. Masukkan kata sandi admin.</p>
+    <input type="password" id="admin-pw-input" placeholder="Kata sandi admin" autocomplete="off" maxlength="24">
+    <div id="admin-modal-error" style="display:none;color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;margin:-12px 0 16px;">Kata sandi admin salah.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="admin-cancel-btn">Batal</button>
+      <button class="btn btn-primary" id="admin-confirm-btn">Verifikasi</button>
+    </div>
+  </div>
+</div>
 
-    <script>
-        /* =========================================================
+<!-- ============ LIGHTBOX ============ -->
+<div id="lightbox">
+  <div class="lb-close" id="lb-close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </div>
+  <img id="lb-img" src="" alt="Foto">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
    KONFIGURASI
    Ganti kata sandi di bawah ini sesuai keinginan Anda.
 ========================================================= */
-const FOTO_PASSWORD = "it123";
+const VAULT_PASSWORD = "it123";     // kata sandi untuk masuk ke aplikasi
+const ADMIN_PASSWORD = "admin123";  // kata sandi khusus untuk mengizinkan penghapusan
 
 /* =========================================================
    STATE (tersimpan hanya selama sesi/tab ini terbuka)
 ========================================================= */
 let albums = [];        // {id, name, photos:[{id, src, name}]}
 let currentAlbumId = null;
+let isAdmin = false;         // true setelah verifikasi kata sandi admin berhasil
+let pendingAdminAction = null; // fungsi yang dijalankan setelah verifikasi admin sukses
 
 /* =========================================================
    LOCK SCREEN
@@ -1007,7 +728,7 @@ const lockError = document.getElementById('lock-error');
 const app = document.getElementById('app');
 
 function tryUnlock(){
-  if(pwInput.value === FOTO_PASSWORD){
+  if(pwInput.value === VAULT_PASSWORD){
     lockScreen.classList.add('hidden');
     app.classList.add('visible');
     setTimeout(()=> lockScreen.style.display='none', 650);
@@ -1024,13 +745,82 @@ pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
 pwInput.addEventListener('input', ()=> lockError.classList.remove('show'));
 window.addEventListener('load', ()=> pwInput.focus());
 
+/* spotlight cahaya mengikuti kursor di lock screen */
+lockScreen.addEventListener('mousemove', (e)=>{
+  const x = (e.clientX / window.innerWidth) * 100;
+  const y = (e.clientY / window.innerHeight) * 100;
+  lockScreen.style.setProperty('--mx', x + '%');
+  lockScreen.style.setProperty('--my', y + '%');
+});
+
 document.getElementById('lock-btn').addEventListener('click', ()=>{
   lockScreen.style.display='flex';
   requestAnimationFrame(()=> lockScreen.classList.remove('hidden'));
   app.classList.remove('visible');
   pwInput.value='';
   pwInput.focus();
+  setAdminMode(false);
 });
+
+/* =========================================================
+   MODE ADMIN — diperlukan untuk menghapus foto/album
+========================================================= */
+const adminBtn = document.getElementById('admin-btn');
+const adminBtnLabel = document.getElementById('admin-btn-label');
+const adminModal = document.getElementById('admin-modal');
+const adminPwInput = document.getElementById('admin-pw-input');
+const adminModalError = document.getElementById('admin-modal-error');
+
+function setAdminMode(on){
+  isAdmin = on;
+  adminBtn.classList.toggle('btn-admin-active', isAdmin);
+  adminBtnLabel.textContent = isAdmin ? 'Admin Aktif' : 'Masuk Admin';
+}
+
+function openAdminModal(actionIfSuccess){
+  // jika sudah admin, langsung jalankan aksi tanpa minta password lagi
+  if(isAdmin){
+    if(actionIfSuccess) actionIfSuccess();
+    return;
+  }
+  pendingAdminAction = actionIfSuccess || null;
+  adminModalError.style.display='none';
+  adminPwInput.value='';
+  adminModal.classList.add('visible');
+  setTimeout(()=> adminPwInput.focus(), 80);
+}
+function closeAdminModal(){
+  adminModal.classList.remove('visible');
+  pendingAdminAction = null;
+}
+
+function confirmAdminPassword(){
+  if(adminPwInput.value === ADMIN_PASSWORD){
+    setAdminMode(true);
+    adminModal.classList.remove('visible');
+    const action = pendingAdminAction;
+    pendingAdminAction = null;
+    if(action) action();
+    showToast('Mode admin aktif');
+  } else {
+    adminModalError.style.display='block';
+    adminPwInput.value='';
+    adminPwInput.focus();
+  }
+}
+
+adminBtn.addEventListener('click', ()=>{
+  if(isAdmin){
+    setAdminMode(false);
+    showToast('Mode admin dinonaktifkan');
+  } else {
+    openAdminModal(null);
+  }
+});
+document.getElementById('admin-cancel-btn').addEventListener('click', closeAdminModal);
+document.getElementById('admin-confirm-btn').addEventListener('click', confirmAdminPassword);
+adminPwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') confirmAdminPassword(); });
+adminModal.addEventListener('click', e=>{ if(e.target===adminModal) closeAdminModal(); });
 
 /* =========================================================
    TOAST
@@ -1170,23 +960,25 @@ function renderAlbumDetail(){
     tile.querySelector('img').addEventListener('click', ()=> openLightbox(photo.src));
     tile.querySelector('.del-photo').addEventListener('click', (e)=>{
       e.stopPropagation();
-      deletePhoto(photo.id);
+      openAdminModal(()=> deletePhoto(photo.id));
     });
     photoGrid.appendChild(tile);
   });
 }
 
 document.getElementById('delete-album-btn').addEventListener('click', ()=>{
-  const album = getCurrentAlbum();
-  if(!album) return;
-  if(confirm('Hapus album "'+album.name+'" beserta semua fotonya?')){
-    albums = albums.filter(a=>a.id!==currentAlbumId);
-    currentAlbumId = null;
-    albumView.classList.remove('visible');
-    albumsView.style.display='block';
-    renderAlbums();
-    showToast('Album dihapus');
-  }
+  openAdminModal(()=>{
+    const album = getCurrentAlbum();
+    if(!album) return;
+    if(confirm('Hapus album "'+album.name+'" beserta semua fotonya?')){
+      albums = albums.filter(a=>a.id!==currentAlbumId);
+      currentAlbumId = null;
+      albumView.classList.remove('visible');
+      albumsView.style.display='block';
+      renderAlbums();
+      showToast('Album dihapus');
+    }
+  });
 });
 
 function deletePhoto(photoId){
@@ -1262,7 +1054,6 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') lightbox.classLis
 
 /* init */
 renderAlbums();
-    </script>
+</script>
 </body>
-
 </html>
