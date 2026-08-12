@@ -4325,30 +4325,23 @@ dropZone.addEventListener(
 =========================================================
 */
 
-async function handleFiles(fileList){
+async function handleFiles(fileList) {
 
-  if(isAdmin){
-
+  if (isAdmin) {
     showToast(
       "Nonaktifkan mode admin untuk mengunggah foto."
     );
-
     return;
   }
 
+  const album = getCurrentAlbum();
 
-  const album =
-    getCurrentAlbum();
-
-  if(!album){
-
+  if (!album) {
+    showToast("Album tidak ditemukan.");
     return;
   }
 
-
-  const files =
-    Array.from(fileList || []);
-
+  const files = Array.from(fileList || []);
 
   const validTypes = [
     "image/jpeg",
@@ -4356,132 +4349,181 @@ async function handleFiles(fileList){
     "image/webp"
   ];
 
+  const imageFiles = files.filter(
+    file => validTypes.includes(file.type)
+  );
 
-  const imageFiles =
-    files.filter(
-      file =>
-        validTypes.includes(file.type)
-    );
-
-
-  if(imageFiles.length === 0){
-
+  if (imageFiles.length === 0) {
     showToast(
       "Pilih JPG, PNG, atau WEBP."
     );
-
     return;
   }
 
+  const maxSize = 20 * 1024 * 1024;
 
-  const maxSize =
-    20 * 1024 * 1024;
+  const validFiles = imageFiles.filter(
+    file => file.size <= maxSize
+  );
 
-
-  const validFiles =
-    imageFiles.filter(
-      file =>
-        file.size <= maxSize
-    );
-
-
-  if(
-    validFiles.length !==
-    imageFiles.length
-  ){
-
+  if (validFiles.length !== imageFiles.length) {
     showToast(
       "Beberapa file melebihi batas 20 MB."
     );
   }
 
-
-  if(validFiles.length === 0){
-
+  if (validFiles.length === 0) {
     return;
   }
-
 
   const dropText =
     dropZone.querySelector("p");
 
-
   const originalText =
     dropText.textContent;
 
+  let successCount = 0;
 
-  let successCount =
-    0;
-
-
-  try{
+  try {
 
     /*
-     * Upload satu per satu.
+     * Upload satu per satu
      */
-
-    for(
-      const file
-      of validFiles
-    ){
+    for (const file of validFiles) {
 
       dropText.textContent =
         `Mengunggah ${file.name}... 0%`;
 
-
       /*
-       * ID unik.
+       * ID unik
        */
-
       const photoId =
-        "p_" +
-        crypto.randomUUID();
-
+        "p_" + crypto.randomUUID();
 
       /*
-       * Storage path.
+       * Storage path
        */
-
       const storagePath =
         `users/${ownerUid}/albums/${album.id}/${photoId}`;
 
-
+      /*
+       * Storage reference
+       */
       const storageRef =
         ref(
           storage,
           storagePath
         );
 
+      /*
+       * Mulai upload
+       */
+      const uploadTask =
+        uploadBytesResumable(
+          storageRef,
+          file,
+          {
+            contentType: file.type
+          }
+        );
 
       /*
-       * Upload resumable.
+       * Tunggu upload sampai selesai
        */
+      await new Promise(
+        (resolve, reject) => {
 
-      const uploadTask = uploadBytesResumable
+          uploadTask.on(
+            "state_changed",
 
+            /*
+             * PROGRESS
+             */
+            snapshot => {
+
+              const progress =
+                snapshot.totalBytes > 0
+                  ? Math.round(
+                      (
+                        snapshot.bytesTransferred /
+                        snapshot.totalBytes
+                      ) * 100
+                    )
+                  : 0;
+
+              dropText.textContent =
+                `Mengunggah ${file.name}... ${progress}%`;
+
+              console.log(
+                "Upload progress:",
+                file.name,
+                progress + "%"
+              );
+
+            },
+
+            /*
+             * ERROR
+             */
+            error => {
+
+              console.error(
+                "Storage upload error:",
+                error
+              );
+
+              console.error(
+                "Error code:",
+                error?.code
+              );
+
+              console.error(
+                "Error message:",
+                error?.message
+              );
+
+              reject(error);
+
+            },
+
+            /*
+             * SELESAI
+             */
+            () => {
+
+              console.log(
+                "Upload selesai:",
+                file.name
+              );
+
+              resolve();
+
+            }
+          );
+
+        }
+      );
 
       /*
-       * Upload berhasil.
+       * Upload sudah benar-benar selesai
        */
-
       dropText.textContent =
         `Memproses ${file.name}...`;
 
-
       /*
-       * Ambil URL.
+       * Ambil URL menggunakan storageRef
+       *
+       * JANGAN:
+       * uploadTask.snapshot.ref
        */
-
       const downloadURL =
         await getDownloadURL(
-          uploadTask.snapshot.ref
+          storageRef
         );
 
-
       /*
-       * Simpan metadata Firestore.
+       * Simpan metadata ke Firestore
        */
-
       await setDoc(
         photoDocument(
           album.id,
@@ -4495,7 +4537,8 @@ async function handleFiles(fileList){
           url:
             downloadURL,
 
-          storagePath,
+          storagePath:
+            storagePath,
 
           contentType:
             file.type,
@@ -4509,11 +4552,9 @@ async function handleFiles(fileList){
         }
       );
 
-
       /*
-       * Update state.
+       * Update state lokal
        */
-
       album.photos.push({
 
         id:
@@ -4525,7 +4566,8 @@ async function handleFiles(fileList){
         name:
           file.name,
 
-        storagePath,
+        storagePath:
+          storagePath,
 
         contentType:
           file.type,
@@ -4535,41 +4577,36 @@ async function handleFiles(fileList){
 
       });
 
-
       successCount++;
 
-
+      /*
+       * Refresh tampilan
+       */
       renderAlbumDetail();
 
     }
 
-
     renderAlbums();
-
 
     showToast(
       `${successCount} foto berhasil diunggah.`
     );
 
-
-  }catch(error){
+  } catch (error) {
 
     console.error(
       "Upload error:",
       error
     );
 
-
     showFirebaseError(
       error
     );
 
-
-  }finally{
+  } finally {
 
     dropText.textContent =
       originalText;
-
 
     fileInput.value =
       "";
