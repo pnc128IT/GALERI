@@ -1,610 +1,4781 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FOTO — Arsip Foto Pribadi (Cloud Synchronized)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Firebase SDK (Modular v10 via CDN) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <title>FOTO — Arsip Foto Pribadi</title>
 
-  // Konfigurasi Firebase Anda
-  const firebaseConfig = {
-    apiKey: "AIzaSyCIdM1fMzD29J-vILWuznKVbXKDnMsyp7A",
-    authDomain: "server-d336e.firebaseapp.com",
-    projectId: "server-d336e",
-    storageBucket: "server-d336e.firebasestorage.app",
-    messagingSenderId: "77281982681",
-    appId: "1:77281982681:web:a1805a3dd8ab508250a6c8",
-    measurementId: "G-YHJT5WYL9V"
-  };
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  // Inisialisasi Firebase
-  const appFB = initializeApp(firebaseConfig);
-  const dbFB = getFirestore(appFB);
-  window.dbFB = dbFB;
-  window.FB_ENABLED = true;
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
-  window.dispatchEvent(new Event('firebase-ready'));
-</script>
+    <style>
+        :root {
+            --bg-0: #121016;
+            --bg-1: #1b1820;
+            --bg-2: #242028;
+            --line: #332e39;
 
-<style>
-  :root{
-    --bg-0:#121016;
-    --bg-1:#1b1820;
-    --bg-2:#242028;
-    --line:#332e39;
-    --amber:#e2a044;
-    --amber-dim:#8a6a34;
-    --amber-glow:rgba(226,160,68,0.28);
-    --paper:#f3ede0;
-    --muted:#948d9c;
-    --red:#c1666b;
-    --radius:14px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(1100px 600px at 50% -10%, rgba(226,160,68,0.07), transparent 60%),
-      var(--bg-0);
-    color:var(--paper);
-    font-family:'Inter',sans-serif;
-    min-height:100vh;
-    overflow-x:hidden;
-  }
-  ::selection{background:var(--amber-glow);color:var(--paper);}
+            --amber: #e2a044;
+            --amber-dim: #8a6a34;
+            --amber-glow: rgba(226, 160, 68, .28);
 
-  ::-webkit-scrollbar{width:10px;}
-  ::-webkit-scrollbar-track{background:var(--bg-0);}
-  ::-webkit-scrollbar-thumb{background:var(--bg-2);border-radius:10px;}
+            --paper: #f3ede0;
+            --muted: #948d9c;
+            --red: #c1666b;
 
-  .ambient-glow{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform;}
-  .orb-1{width:520px;height:520px;top:-180px;left:-120px;background:radial-gradient(circle, var(--amber) 0%, transparent 70%);animation:drift1 22s ease-in-out infinite;opacity:.22;}
-  .orb-2{width:460px;height:460px;bottom:-160px;right:-100px;background:radial-gradient(circle, #7aa3c9 0%, transparent 70%);animation:drift2 26s ease-in-out infinite;opacity:.14;}
-  .orb-3{width:340px;height:340px;top:40%;left:60%;background:radial-gradient(circle, var(--amber) 0%, transparent 70%);animation:drift3 19s ease-in-out infinite;opacity:.12;}
-  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(60px,50px) scale(1.12);}}
-  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-50px,-40px) scale(1.08);}}
-  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-40px,30px) scale(1.15);}}
+            --radius: 14px;
+        }
 
-  .grain{
-    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
+        * {
+            box-sizing: border-box;
+        }
 
-  #lock-screen, #app, .modal-overlay, #lightbox{position:relative;z-index:2;}
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
 
-  #lock-screen{
-    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;
-    background:
-      radial-gradient(600px 500px at 50% 38%, var(--amber-glow), transparent 60%),
-      radial-gradient(900px 700px at 50% 100%, rgba(122,163,201,0.08), transparent 60%),
-      var(--bg-0);
-    transition:opacity .6s ease, filter .6s ease, background .3s ease;
-  }
-  #lock-screen.hidden{opacity:0;filter:blur(6px);pointer-events:none;}
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
 
-  .lock-card{width:min(360px, 88vw);text-align:center;}
-  .aperture{width:76px;height:76px;margin:0 auto 28px;position:relative;}
-  .aperture::before{
-    content:'';position:absolute;inset:-22px;border-radius:50%;
-    background:radial-gradient(circle, var(--amber-glow) 0%, transparent 72%);
-    filter:blur(6px);animation:ring-pulse 3.2s ease-in-out infinite;
-  }
-  @keyframes ring-pulse{0%,100%{opacity:.4;transform:scale(.92);}50%{opacity:.9;transform:scale(1.08);}}
-  .aperture svg{width:100%;height:100%;display:block;position:relative;}
-  .aperture circle.ring{fill:none;stroke:var(--amber-dim);stroke-width:1.4;}
-  .aperture .blade{
-    fill:none;stroke:var(--amber);stroke-width:1.6;stroke-linecap:round;
-    transform-origin:38px 38px;animation:blade-breathe 4s ease-in-out infinite;
-  }
-  @keyframes blade-breathe{0%,100%{opacity:.55;}50%{opacity:1;}}
+            background:
+                radial-gradient(1100px 600px at 50% -10%,
+                    rgba(226, 160, 68, .07),
+                    transparent 60%),
+                var(--bg-0);
 
-  .lock-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;color:var(--amber-dim);text-transform:uppercase;margin-bottom:10px;}
-  .lock-title{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:34px;margin:0 0 6px;color:var(--paper);text-shadow:0 0 30px rgba(226,160,68,0.35);}
-  .lock-sub{color:var(--muted);font-size:13.5px;margin:0 0 34px;}
+            color: var(--paper);
+            font-family: 'Inter', sans-serif;
+        }
 
-  .pw-row{position:relative;margin-bottom:18px;}
-  #pw-input{
-    width:100%;background:transparent;border:none;border-bottom:1px solid var(--line);
-    color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.35em;
-    text-align:center;padding:10px 4px 12px;outline:none;transition:border-color .25s ease;
-  }
-  #pw-input:focus{border-color:var(--amber);}
+        button,
+        input {
+            font: inherit;
+        }
 
-  #unlock-btn{
-    width:100%;background:var(--amber);color:#1b1305;border:none;border-radius:999px;
-    padding:13px 18px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.14em;
-    text-transform:uppercase;font-weight:600;cursor:pointer;
-    transition:transform .15s ease, box-shadow .15s ease;
-    box-shadow:0 8px 24px -8px var(--amber-glow);
-  }
-  #unlock-btn:hover{transform:translateY(-1px);box-shadow:0 12px 32px -6px var(--amber-glow);}
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  .lock-error{min-height:18px;color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin-top:14px;opacity:0;transition:opacity .2s ease;}
-  .lock-error.show{opacity:1;}
+        ::selection {
+            background: var(--amber-glow);
+            color: var(--paper);
+        }
 
-  #app{max-width:1180px;margin:0 auto;padding:0 28px 80px;display:none;}
-  #app.visible{display:block;}
+        /* ================= SCROLLBAR ================= */
 
-  header.topbar{display:flex;align-items:center;justify-content:space-between;padding:34px 0 26px;border-bottom:1px solid var(--line);margin-bottom:34px;gap:16px;flex-wrap:wrap;}
-  .brand{display:flex;align-items:center;gap:12px;}
-  .brand-mark{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(226,160,68,0.55));}
-  .brand-mark svg{width:100%;height:100%;}
-  .brand-text .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--amber-dim);text-transform:uppercase;}
-  .brand-text h1{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:23px;margin:1px 0 0;color:var(--paper);}
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
 
-  .topbar-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-  .btn{
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
-    padding:10px 16px;border-radius:999px;cursor:pointer;border:1px solid var(--line);
-    background:var(--bg-1);color:var(--paper);display:inline-flex;align-items:center;gap:7px;
-    transition:all .2s ease;
-  }
-  .btn:hover{border-color:var(--amber-dim);background:var(--bg-2);transform:translateY(-1px);}
-  .btn-primary{background:var(--amber);color:#1b1305;border-color:var(--amber);font-weight:600;box-shadow:0 6px 20px -6px var(--amber-glow);}
-  .btn-ghost{background:transparent;}
-  .btn-danger{border-color:rgba(193,102,107,.4);color:var(--red);background:transparent;}
-  .btn-danger:hover{background:rgba(193,102,107,.1);border-color:var(--red);}
-  .btn svg{width:14px;height:14px;}
-  .btn-admin-active{border-color:var(--amber);color:var(--amber);background:rgba(226,160,68,0.08);}
+        ::-webkit-scrollbar-track {
+            background: var(--bg-0);
+        }
 
-  .section-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;}
-  .section-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;}
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-2);
+            border-radius: 10px;
+        }
 
-  .album-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));gap:22px;}
-  .album-card{
-    background:rgba(27,24,32,0.85);backdrop-filter:blur(6px);border:1px solid var(--line);
-    border-radius:var(--radius);overflow:hidden;cursor:pointer;
-    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;position:relative;
-  }
-  .album-card:hover{transform:translateY(-5px);border-color:var(--amber-dim);box-shadow:0 20px 40px -18px rgba(0,0,0,.65);}
-  .album-cover{height:150px;background:var(--bg-2);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .album-cover img,.album-cover video{width:100%;height:100%;object-fit:cover;display:block;}
-  .album-cover .empty-icon{width:34px;height:34px;color:var(--line);}
-  .album-info{padding:14px 16px 16px;}
-  .album-name{font-family:'Fraunces',serif;font-weight:500;font-size:16.5px;color:var(--paper);margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .album-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.06em;}
+        /* ================= AMBIENT ================= */
 
-  .new-album-card{
-    border:1.5px dashed var(--line);border-radius:var(--radius);min-height:216px;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;
-    color:var(--muted);transition:all .2s ease;background:transparent;
-  }
-  .new-album-card:hover{border-color:var(--amber-dim);color:var(--amber);background:rgba(226,160,68,0.04);}
-  .new-album-card span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
+        .ambient-glow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
 
-  .empty-state{text-align:center;padding:70px 20px;border:1px dashed var(--line);border-radius:var(--radius);}
-  .empty-state h3{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:21px;margin:0 0 8px;color:var(--paper);}
-  .empty-state p{color:var(--muted);font-size:13.5px;margin:0 0 22px;}
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            will-change: transform;
+        }
 
-  #album-view{display:none;}
-  #album-view.visible{display:block;}
-  .back-row{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
-  .back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-transform:uppercase;background:none;border:none;padding:0;}
-  .back-btn:hover{color:var(--amber);}
+        .orb-1 {
+            width: 520px;
+            height: 520px;
+            top: -180px;
+            left: -120px;
 
-  .album-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px;}
-  .album-header h2{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:32px;margin:0;color:var(--paper);}
-  .album-header .count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;}
-  .album-header-actions{display:flex;gap:10px;}
+            background:
+                radial-gradient(circle,
+                    var(--amber) 0%,
+                    transparent 70%);
 
-  #drop-zone{
-    border:1.5px dashed var(--line);border-radius:var(--radius);padding:34px 20px;
-    text-align:center;margin-bottom:28px;cursor:pointer;transition:all .2s ease;color:var(--muted);
-  }
-  #drop-zone:hover{border-color:var(--amber-dim);background:rgba(226,160,68,0.04);}
-  #drop-zone p{margin:0;font-size:13px;}
-  #file-input{display:none;}
+            opacity: .22;
 
-  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:14px;}
-  .photo-tile{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--bg-2);border:1px solid var(--line);cursor:pointer;}
-  .photo-tile img,.photo-tile video{width:100%;height:100%;object-fit:cover;display:block;}
-  .type-tag{position:absolute;bottom:7px;left:7px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--paper);background:rgba(18,16,22,0.7);padding:2px 6px;border-radius:6px;}
-  .photo-tile .del-photo{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:50%;background:rgba(18,16,22,0.75);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease;color:var(--paper);}
-  .photo-tile:hover .del-photo{opacity:1;}
-  .del-photo:hover{background:var(--red);}
+            animation: drift1 22s ease-in-out infinite;
+        }
 
-  #lightbox{position:fixed;inset:0;z-index:200;background:rgba(10,9,12,0.92);display:none;align-items:center;justify-content:center;padding:40px;}
-  #lightbox.visible{display:flex;}
-  #lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
-  #lightbox .lb-close{position:absolute;top:26px;right:30px;width:38px;height:38px;border-radius:50%;background:var(--bg-1);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper);}
+        .orb-2 {
+            width: 460px;
+            height: 460px;
+            right: -100px;
+            bottom: -160px;
 
-  .modal-overlay{position:fixed;inset:0;z-index:150;background:rgba(10,9,12,0.72);display:none;align-items:center;justify-content:center;padding:20px;}
-  .modal-overlay.visible{display:flex;}
-  .modal-box{width:min(380px, 100%);background:var(--bg-1);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px 26px;}
-  .modal-box h3{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:21px;margin:0 0 18px;color:var(--paper);}
-  .modal-box input{width:100%;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:11px 13px;color:var(--paper);font-size:14px;outline:none;margin-bottom:20px;}
-  .modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+            background:
+                radial-gradient(circle,
+                    #7aa3c9 0%,
+                    transparent 70%);
 
-  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg-2);border:1px solid var(--line);padding:12px 20px;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);opacity:0;pointer-events:none;transition:all .25s ease;z-index:250;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-</style>
+            opacity: .14;
+
+            animation: drift2 26s ease-in-out infinite;
+        }
+
+        .orb-3 {
+            width: 340px;
+            height: 340px;
+            top: 40%;
+            left: 60%;
+
+            background:
+                radial-gradient(circle,
+                    var(--amber) 0%,
+                    transparent 70%);
+
+            opacity: .12;
+
+            animation: drift3 19s ease-in-out infinite;
+        }
+
+        @keyframes drift1 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(60px, 50px) scale(1.12);
+            }
+        }
+
+        @keyframes drift2 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(-50px, -40px) scale(1.08);
+            }
+        }
+
+        @keyframes drift3 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(-40px, 30px) scale(1.15);
+            }
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+
+            opacity: .045;
+            mix-blend-mode: overlay;
+
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"
+                );
+        }
+
+        /* ================= LOCK SCREEN ================= */
+
+        #lock-screen {
+            position: fixed;
+            inset: 0;
+
+            z-index: 100;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                radial-gradient(600px 500px at var(--mx, 50%) var(--my, 38%),
+                    var(--amber-glow),
+                    transparent 60%),
+                radial-gradient(900px 700px at 50% 100%,
+                    rgba(122, 163, 201, .08),
+                    transparent 60%),
+                var(--bg-0);
+
+            transition:
+                opacity .6s ease,
+                filter .6s ease,
+                background .3s ease;
+        }
+
+        #lock-screen.hidden {
+            opacity: 0;
+            filter: blur(6px);
+            pointer-events: none;
+        }
+
+        .lock-card {
+            width: min(360px, 88vw);
+            text-align: center;
+        }
+
+        .aperture {
+            width: 76px;
+            height: 76px;
+
+            margin: 0 auto 28px;
+
+            position: relative;
+        }
+
+        .aperture::before {
+            content: "";
+
+            position: absolute;
+            inset: -22px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(circle,
+                    var(--amber-glow) 0%,
+                    transparent 72%);
+
+            filter: blur(6px);
+
+            animation: ringPulse 3.2s ease-in-out infinite;
+        }
+
+        @keyframes ringPulse {
+
+            0%,
+            100% {
+                opacity: .4;
+                transform: scale(.92);
+            }
+
+            50% {
+                opacity: .9;
+                transform: scale(1.08);
+            }
+        }
+
+        .aperture svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: relative;
+        }
+
+        .aperture circle.ring {
+            fill: none;
+            stroke: var(--amber-dim);
+            stroke-width: 1.4;
+        }
+
+        .aperture .blade {
+            fill: none;
+            stroke: var(--amber);
+            stroke-width: 1.6;
+            stroke-linecap: round;
+
+            animation: bladeBreathe 4s ease-in-out infinite;
+        }
+
+        @keyframes bladeBreathe {
+
+            0%,
+            100% {
+                opacity: .55;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .lock-eyebrow {
+            margin-bottom: 10px;
+
+            color: var(--amber-dim);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+        }
+
+        .lock-title {
+            margin: 0 0 6px;
+
+            color: var(--paper);
+
+            font-family: 'Fraunces', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 34px;
+
+            text-shadow:
+                0 0 30px rgba(226, 160, 68, .35);
+        }
+
+        .lock-sub {
+            margin: 0 0 34px;
+
+            color: var(--muted);
+            font-size: 13.5px;
+        }
+
+        .pw-row {
+            margin-bottom: 18px;
+        }
+
+        #pw-input {
+            width: 100%;
+
+            padding: 10px 4px 12px;
+
+            background: transparent;
+            border: 0;
+            border-bottom: 1px solid var(--line);
+            outline: none;
+
+            color: var(--paper);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 20px;
+            letter-spacing: .35em;
+            text-align: center;
+
+            transition: border-color .25s ease;
+        }
+
+        #pw-input:focus {
+            border-color: var(--amber);
+        }
+
+        #pw-input.shake {
+            animation: shake .38s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20% {
+                transform: translateX(-8px);
+            }
+
+            40% {
+                transform: translateX(7px);
+            }
+
+            60% {
+                transform: translateX(-5px);
+            }
+
+            80% {
+                transform: translateX(4px);
+            }
+        }
+
+        #unlock-btn {
+            width: 100%;
+
+            padding: 13px 18px;
+
+            position: relative;
+            overflow: hidden;
+
+            border: 0;
+            border-radius: 999px;
+
+            background: var(--amber);
+            color: #1b1305;
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12.5px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 8px 24px -8px var(--amber-glow);
+
+            transition:
+                transform .15s ease,
+                box-shadow .15s ease,
+                background .2s ease;
+        }
+
+        #unlock-btn::after {
+            content: "";
+
+            position: absolute;
+            top: 0;
+            left: -60%;
+
+            width: 40%;
+            height: 100%;
+
+            background:
+                linear-gradient(115deg,
+                    transparent,
+                    rgba(255, 255, 255, .55),
+                    transparent);
+
+            transform: skewX(-20deg);
+
+            transition: left .6s ease;
+        }
+
+        #unlock-btn:hover::after {
+            left: 130%;
+        }
+
+        #unlock-btn:hover {
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 12px 32px -6px var(--amber-glow);
+        }
+
+        #unlock-btn:disabled {
+            cursor: wait;
+            opacity: .7;
+        }
+
+        .lock-error {
+            min-height: 18px;
+
+            margin-top: 14px;
+
+            color: var(--red);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+
+            opacity: 0;
+
+            transition: opacity .2s ease;
+        }
+
+        .lock-error.show {
+            opacity: 1;
+        }
+
+        /* ================= APP ================= */
+
+        #app {
+            position: relative;
+            z-index: 2;
+
+            max-width: 1180px;
+
+            margin: 0 auto;
+            padding: 0 28px 80px;
+
+            display: none;
+        }
+
+        #app.visible {
+            display: block;
+        }
+
+        header.topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 16px;
+            flex-wrap: wrap;
+
+            padding: 34px 0 26px;
+
+            border-bottom: 1px solid var(--line);
+
+            margin-bottom: 34px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-mark {
+            width: 30px;
+            height: 30px;
+
+            flex-shrink: 0;
+
+            filter:
+                drop-shadow(0 0 8px rgba(226, 160, 68, .55));
+        }
+
+        .brand-mark svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .brand-text .eyebrow {
+            color: var(--amber-dim);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .25em;
+            text-transform: uppercase;
+        }
+
+        .brand-text h1 {
+            margin: 1px 0 0;
+
+            color: var(--paper);
+
+            font-family: 'Fraunces', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 23px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            padding: 10px 16px;
+
+            border: 1px solid var(--line);
+            border-radius: 999px;
+
+            background: var(--bg-1);
+            color: var(--paper);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+
+            cursor: pointer;
+            white-space: nowrap;
+
+            transition:
+                border-color .2s ease,
+                background .2s ease,
+                transform .15s ease,
+                box-shadow .2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--amber-dim);
+            background: var(--bg-2);
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 6px 18px -6px rgba(226, 160, 68, .25);
+        }
+
+        .btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-primary {
+            background: var(--amber);
+            border-color: var(--amber);
+
+            color: #1b1305;
+
+            font-weight: 600;
+
+            box-shadow:
+                0 6px 20px -6px var(--amber-glow);
+        }
+
+        .btn-primary:hover {
+            background: #eab35e;
+            border-color: #eab35e;
+        }
+
+        .btn-ghost {
+            background: transparent;
+        }
+
+        .btn-danger {
+            border-color: rgba(193, 102, 107, .4);
+            background: transparent;
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: rgba(193, 102, 107, .1);
+            border-color: var(--red);
+        }
+
+        .btn-admin-active {
+            border-color: var(--amber);
+
+            color: var(--amber);
+
+            background: rgba(226, 160, 68, .08);
+
+            box-shadow:
+                0 0 0 1px rgba(226, 160, 68, .25),
+                0 6px 20px -6px var(--amber-glow);
+        }
+
+        /* ================= SECTION ================= */
+
+        .section-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+
+            margin-bottom: 18px;
+
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-label {
+            color: var(--muted);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+        }
+
+        /* ================= ALBUMS ================= */
+
+        .album-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fill,
+                    minmax(230px, 1fr));
+
+            gap: 22px;
+        }
+
+        .album-card {
+            position: relative;
+
+            overflow: hidden;
+
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+
+            background: rgba(27, 24, 32, .75);
+
+            backdrop-filter: blur(6px);
+
+            cursor: pointer;
+
+            transition:
+                transform .25s ease,
+                border-color .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .album-card:hover {
+            transform: translateY(-5px);
+
+            border-color: var(--amber-dim);
+
+            box-shadow:
+                0 20px 40px -18px rgba(0, 0, 0, .65),
+                0 0 24px -8px var(--amber-glow);
+        }
+
+        .album-cover {
+            height: 150px;
+
+            position: relative;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+
+            background: var(--bg-2);
+        }
+
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+
+            transition: transform .35s ease;
+        }
+
+        .album-card:hover .album-cover img {
+            transform: scale(1.04);
+        }
+
+        .empty-icon {
+            width: 34px;
+            height: 34px;
+
+            color: var(--line);
+        }
+
+        .perf {
+            position: absolute;
+            left: 0;
+            right: 0;
+
+            display: flex;
+            justify-content: space-around;
+
+            padding: 0 10px;
+
+            z-index: 2;
+        }
+
+        .perf.top {
+            top: 8px;
+        }
+
+        .perf.bottom {
+            bottom: 8px;
+        }
+
+        .perf span {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: var(--bg-0);
+        }
+
+        .album-info {
+            padding: 14px 16px 16px;
+        }
+
+        .album-name {
+            margin: 0 0 4px;
+
+            color: var(--paper);
+
+            font-family: 'Fraunces', serif;
+            font-weight: 500;
+            font-size: 16.5px;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .album-meta {
+            margin: 0;
+
+            color: var(--muted);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10.5px;
+            letter-spacing: .06em;
+        }
+
+        .new-album-card {
+            min-height: 216px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            gap: 10px;
+
+            border: 1.5px dashed var(--line);
+            border-radius: var(--radius);
+
+            background: transparent;
+
+            color: var(--muted);
+
+            cursor: pointer;
+
+            transition:
+                border-color .2s ease,
+                color .2s ease,
+                background .2s ease;
+        }
+
+        .new-album-card:hover {
+            border-color: var(--amber-dim);
+
+            color: var(--amber);
+
+            background: rgba(226, 160, 68, .04);
+        }
+
+        .new-album-card svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .new-album-card span {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        /* ================= EMPTY ================= */
+
+        .empty-state {
+            padding: 70px 20px;
+
+            border: 1px dashed var(--line);
+            border-radius: var(--radius);
+
+            text-align: center;
+        }
+
+        .empty-state svg {
+            width: 44px;
+            height: 44px;
+
+            color: var(--line);
+
+            margin-bottom: 18px;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 8px;
+
+            color: var(--paper);
+
+            font-family: 'Fraunces', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 21px;
+        }
+
+        .empty-state p {
+            margin: 0 0 22px;
+
+            color: var(--muted);
+
+            font-size: 13.5px;
+        }
+
+        /* ================= ALBUM DETAIL ================= */
+
+        #album-view {
+            display: none;
+        }
+
+        #album-view.visible {
+            display: block;
+        }
+
+        .back-row {
+            display: flex;
+            align-items: center;
+
+            gap: 14px;
+
+            margin-bottom: 22px;
+
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            padding: 0;
+
+            border: 0;
+
+            background: none;
+
+            color: var(--muted);
+
+            cursor: pointer;
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .back-btn:hover {
+            color: var(--amber);
+        }
+
+        .back-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .album-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+
+            gap: 16px;
+
+            margin-bottom: 26px;
+
+            flex-wrap: wrap;
+        }
+
+        .album-header h2 {
+            margin: 0;
+
+            color: var(--paper);
+
+            font-family: 'Fraunces', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 32px;
+        }
+
+        .album-header .count {
+            margin-top: 4px;
+
+            color: var(--muted);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .08em;
+        }
+
+        .album-header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ================= DROP ZONE ================= */
+
+        #drop-zone {
+            margin-bottom: 28px;
+
+            padding: 34px 20px;
+
+            border: 1.5px dashed var(--line);
+            border-radius: var(--radius);
+
+            color: var(--muted);
+
+            text-align: center;
+
+            cursor: pointer;
+
+            transition:
+                border-color .2s ease,
+                background .2s ease;
+        }
+
+        #drop-zone:hover {
+            border-color: var(--amber-dim);
+        }
+
+        #drop-zone.drag-over {
+            border-color: var(--amber);
+
+            background: rgba(226, 160, 68, .06);
+
+            color: var(--amber);
+
+            box-shadow:
+                0 0 30px -6px var(--amber-glow),
+                inset 0 0 30px -12px var(--amber-glow);
+        }
+
+        #drop-zone svg {
+            width: 26px;
+            height: 26px;
+
+            margin-bottom: 10px;
+        }
+
+        #drop-zone p {
+            margin: 0;
+
+            font-size: 13px;
+        }
+
+        #drop-zone .hint {
+            display: block;
+
+            margin-top: 6px;
+
+            color: var(--amber-dim);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10.5px;
+            letter-spacing: .08em;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* ================= PHOTO GRID ================= */
+
+        .photo-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fill,
+                    minmax(160px, 1fr));
+
+            gap: 14px;
+        }
+
+        .photo-tile {
+            position: relative;
+
+            aspect-ratio: 1/1;
+
+            overflow: hidden;
+
+            border: 1px solid var(--line);
+            border-radius: 10px;
+
+            background: var(--bg-2);
+
+            cursor: pointer;
+
+            transition:
+                border-color .25s ease,
+                box-shadow .25s ease,
+                transform .25s ease;
+        }
+
+        .photo-tile:hover {
+            border-color: var(--amber-dim);
+
+            box-shadow:
+                0 12px 28px -10px rgba(0, 0, 0, .6),
+                0 0 18px -6px var(--amber-glow);
+
+            transform: translateY(-2px);
+        }
+
+        .photo-tile img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+
+            transition: transform .35s ease;
+        }
+
+        .photo-tile:hover img {
+            transform: scale(1.06);
+        }
+
+        .del-photo {
+            position: absolute;
+
+            top: 7px;
+            right: 7px;
+
+            width: 30px;
+            height: 30px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 50%;
+
+            background: rgba(18, 16, 22, .78);
+
+            color: var(--paper);
+
+            cursor: pointer;
+
+            opacity: 0;
+
+            transition:
+                opacity .18s ease,
+                background .18s ease;
+        }
+
+        .photo-tile:hover .del-photo,
+        .del-photo:focus {
+            opacity: 1;
+        }
+
+        .del-photo:hover {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        .del-photo.locked {
+            opacity: .45;
+        }
+
+        .del-photo svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        /* ================= LIGHTBOX ================= */
+
+        #lightbox {
+            position: fixed;
+            inset: 0;
+
+            z-index: 200;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 40px;
+
+            background: rgba(10, 9, 12, .94);
+        }
+
+        #lightbox.visible {
+            display: flex;
+        }
+
+        #lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+
+            border-radius: 8px;
+
+            box-shadow:
+                0 30px 60px rgba(0, 0, 0, .5);
+
+            object-fit: contain;
+        }
+
+        .lb-close {
+            position: absolute;
+
+            top: 26px;
+            right: 30px;
+
+            width: 38px;
+            height: 38px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid var(--line);
+            border-radius: 50%;
+
+            background: var(--bg-1);
+
+            color: var(--paper);
+
+            cursor: pointer;
+        }
+
+        .lb-close:hover {
+            border-color: var(--amber-dim);
+        }
+
+        .lb-close svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ================= MODAL ================= */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+
+            z-index: 150;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background: rgba(10, 9, 12, .72);
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(390px, 100%);
+
+            padding: 30px 26px 26px;
+
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+
+            background: var(--bg-1);
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, .5);
+        }
+
+        .modal-box h3 {
+            margin: 0 0 18px;
+
+            color: var(--paper);
+
+            font-family: 'Fraunces', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 21px;
+        }
+
+        .modal-description {
+            margin: -10px 0 18px;
+
+            color: var(--muted);
+
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        .modal-input {
+            width: 100%;
+
+            padding: 11px 13px;
+
+            margin-bottom: 20px;
+
+            border: 1px solid var(--line);
+            border-radius: 8px;
+
+            outline: none;
+
+            background: var(--bg-2);
+            color: var(--paper);
+
+            font-size: 14px;
+
+            transition: border-color .2s ease;
+        }
+
+        .modal-input:focus {
+            border-color: var(--amber-dim);
+        }
+
+        .modal-error {
+            display: none;
+
+            margin: -12px 0 16px;
+
+            color: var(--red);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* ================= TOAST ================= */
+
+        .toast {
+            position: fixed;
+
+            left: 50%;
+            bottom: 26px;
+
+            z-index: 250;
+
+            padding: 12px 20px;
+
+            border: 1px solid var(--line);
+            border-radius: 999px;
+
+            background: var(--bg-2);
+
+            color: var(--paper);
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: .04em;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transform:
+                translateX(-50%) translateY(20px);
+
+            transition:
+                opacity .25s ease,
+                transform .25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+
+            transform:
+                translateX(-50%) translateY(0);
+        }
+
+        /* ================= LOADING ================= */
+
+        .loading-state {
+            padding: 60px 20px;
+
+            color: var(--muted);
+
+            text-align: center;
+
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+
+            margin: 0 auto 14px;
+
+            border: 2px solid var(--line);
+            border-top-color: var(--amber);
+
+            border-radius: 50%;
+
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media(max-width:700px) {
+
+            #app {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .album-grid {
+                grid-template-columns:
+                    repeat(auto-fill,
+                        minmax(180px, 1fr));
+            }
+
+            .photo-grid {
+                grid-template-columns:
+                    repeat(auto-fill,
+                        minmax(130px, 1fr));
+            }
+
+        }
+
+        @media(max-width:560px) {
+
+            .lock-title {
+                font-size: 28px;
+            }
+
+            .album-header h2 {
+                font-size: 26px;
+            }
+
+            header.topbar {
+                padding-top: 24px;
+            }
+
+            .topbar-actions {
+                width: 100%;
+            }
+
+            .topbar-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .album-header-actions {
+                width: 100%;
+            }
+
+            .album-header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            #lightbox {
+                padding: 20px;
+            }
+
+            .lb-close {
+                top: 15px;
+                right: 15px;
+            }
+
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="ambient-glow" aria-hidden="true">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
-<div class="grain" aria-hidden="true"></div>
+    <!-- ================= AMBIENT ================= -->
 
-<div id="lock-screen">
-  <div class="lock-card">
-    <div class="aperture">
-      <svg viewBox="0 0 76 76">
-        <circle class="ring" cx="38" cy="38" r="34"/>
-        <g class="blade">
-          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(0 38 38)"/>
-          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(60 38 38)"/>
-          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(120 38 38)"/>
-          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(180 38 38)"/>
-          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(240 38 38)"/>
-          <path d="M38 12 L46 30 L38 38 Z" transform="rotate(300 38 38)"/>
-        </g>
-      </svg>
+    <div class="ambient-glow" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
-    <div class="lock-eyebrow">Akses Privat</div>
-    <h1 class="lock-title">FOTO</h1>
-    <p class="lock-sub">Masukkan kata sandi untuk membuka arsip cloud Anda</p>
-    <div class="pw-row">
-      <input type="password" id="pw-input" placeholder="••••••" autocomplete="off" maxlength="24">
-    </div>
-    <button id="unlock-btn">Buka FOTO</button>
-    <div class="lock-error" id="lock-error">Kata sandi salah, coba lagi.</div>
-  </div>
-</div>
 
-<div id="app">
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">
-        <svg viewBox="0 0 30 30" fill="none">
-          <circle cx="15" cy="15" r="13" stroke="#e2a044" stroke-width="1.4"/>
-          <circle cx="15" cy="15" r="4.5" stroke="#e2a044" stroke-width="1.4"/>
+    <div class="grain" aria-hidden="true"></div>
+
+
+    <!-- ================= LOCK SCREEN ================= -->
+
+    <div id="lock-screen">
+
+        <div class="lock-card">
+
+            <div class="aperture">
+
+                <svg viewBox="0 0 76 76">
+
+                    <circle class="ring" cx="38" cy="38" r="34" />
+
+                    <g class="blade">
+
+                        <path d="M38 12 L46 30 L38 38 Z" />
+
+                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(60 38 38)" />
+
+                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(120 38 38)" />
+
+                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(180 38 38)" />
+
+                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(240 38 38)" />
+
+                        <path d="M38 12 L46 30 L38 38 Z" transform="rotate(300 38 38)" />
+
+                    </g>
+
+                </svg>
+
+            </div>
+
+            <div class="lock-eyebrow">
+                Akses Privat
+            </div>
+
+            <h1 class="lock-title">
+                FOTO
+            </h1>
+
+            <p class="lock-sub">
+                Masukkan kata sandi untuk membuka arsip foto Anda
+            </p>
+
+            <div class="pw-row">
+
+                <input
+        type="password"
+        id="pw-input"
+        placeholder="••••••"
+        autocomplete="off"
+        maxlength="128"
+      >
+
+            </div>
+
+            <button id="unlock-btn">
+      Buka FOTO
+    </button>
+
+            <div class="lock-error" id="lock-error">
+                Kata sandi salah, coba lagi.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= APP ================= -->
+
+    <div id="app">
+
+        <header class="topbar">
+
+            <div class="brand">
+
+                <div class="brand-mark">
+
+                    <svg viewBox="0 0 30 30" fill="none">
+
+                        <circle cx="15" cy="15" r="13" stroke="#e2a044" stroke-width="1.4" />
+
+                        <circle cx="15" cy="15" r="4.5" stroke="#e2a044" stroke-width="1.4" />
+
+                    </svg>
+
+                </div>
+
+                <div class="brand-text">
+
+                    <div class="eyebrow">
+                        Arsip Pribadi
+                    </div>
+
+                    <h1>
+                        FOTO
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <button
+        class="btn btn-ghost"
+        id="admin-btn"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle
+            cx="12"
+            cy="8"
+            r="3.5"
+          />
+
+          <path
+            d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5"
+          />
         </svg>
-      </div>
-      <div class="brand-text">
-        <div class="eyebrow">Arsip Cloud Pribadi</div>
-        <h1>FOTO</h1>
-      </div>
-    </div>
-    <div class="topbar-actions">
-      <button class="btn btn-ghost" id="admin-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5"/></svg>
-        <span id="admin-btn-label">Masuk Admin</span>
+
+        <span id="admin-btn-label">
+          Masuk Admin
+        </span>
+
       </button>
-      <button class="btn btn-ghost" id="lock-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+
+
+                <button
+        class="btn btn-ghost"
+        id="lock-btn"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+
+          <rect
+            x="4"
+            y="10"
+            width="16"
+            height="10"
+            rx="2"
+          />
+
+          <path
+            d="M7 10V7a5 5 0 0 1 10 0v3"
+          />
+
+        </svg>
+
         Kunci
+
       </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- ================= ALBUMS VIEW ================= -->
+
+        <section id="albums-view">
+
+            <div class="section-row">
+
+                <span class="section-label">
+        Album
+      </span>
+
+            </div>
+
+
+            <div id="albums-loading" class="loading-state">
+
+                <div class="spinner"></div>
+
+                Memuat arsip...
+
+            </div>
+
+
+            <div id="albums-empty" class="empty-state" style="display:none;">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+
+                    <circle cx="9" cy="10" r="1.6" />
+
+                    <path d="M21 16l-5-5-4 4-3-3-5 5" />
+
+                </svg>
+
+                <h3>
+                    Belum ada album
+                </h3>
+
+                <p>
+                    Buat album pertama untuk mulai menyimpan foto Anda.
+                </p>
+
+                <button
+        class="btn btn-primary"
+        id="empty-new-album-btn"
+      >
+        + Buat Album
+      </button>
+
+            </div>
+
+
+            <div class="album-grid" id="album-grid" style="display:none;"></div>
+
+        </section>
+
+
+        <!-- ================= ALBUM DETAIL ================= -->
+
+        <section id="album-view">
+
+            <div class="back-row">
+
+                <button
+        class="back-btn"
+        id="back-btn"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+
+          <path d="M15 18l-6-6 6-6"/>
+
+        </svg>
+
+        Semua Album
+
+      </button>
+
+            </div>
+
+
+            <div class="album-header">
+
+                <div>
+
+                    <h2 id="album-title">
+                        Album
+                    </h2>
+
+                    <div class="count" id="album-count">
+                        0 foto
+                    </div>
+
+                </div>
+
+
+                <div class="album-header-actions">
+
+                    <button
+          class="btn btn-danger"
+          id="delete-album-btn"
+        >
+          Hapus Album
+        </button>
+
+                    <button
+          class="btn btn-primary"
+          id="upload-btn"
+        >
+          + Unggah Foto
+        </button>
+
+                </div>
+
+            </div>
+
+
+            <div id="drop-zone">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+
+                    <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
+
+                    <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+
+                </svg>
+
+                <p>
+                    Seret &amp; lepas foto di sini, atau klik untuk memilih
+                </p>
+
+                <span class="hint">
+        JPG · PNG · WEBP · MAKS. 20 MB
+      </span>
+
+                <input
+        type="file"
+        id="file-input"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+      >
+
+            </div>
+
+
+            <div class="photo-grid" id="photo-grid"></div>
+
+        </section>
+
     </div>
-  </header>
 
-  <div id="albums-view">
-    <div class="section-row"><span class="section-label">Album Cloud</span></div>
-    <div id="albums-empty" class="empty-state" style="display:none;">
-      <h3>Belum ada album</h3>
-      <p>Buat album pertama untuk mulai menyimpan foto.</p>
-      <button class="btn btn-primary" id="empty-new-album-btn">+ Buat Album</button>
+
+    <!-- ================= NEW ALBUM MODAL ================= -->
+
+    <div class="modal-overlay" id="album-modal">
+
+        <div class="modal-box">
+
+            <h3>
+                Album Baru
+            </h3>
+
+            <input
+      type="text"
+      id="new-album-name"
+      class="modal-input"
+      placeholder="Nama album, mis. Liburan Bali"
+      maxlength="40"
+      autocomplete="off"
+    >
+
+            <div class="modal-actions">
+
+                <button
+        class="btn btn-ghost"
+        id="cancel-album-btn"
+      >
+        Batal
+      </button>
+
+                <button
+        class="btn btn-primary"
+        id="confirm-album-btn"
+      >
+        Buat
+      </button>
+
+            </div>
+
+        </div>
+
     </div>
-    <div class="album-grid" id="album-grid" style="display:none;"></div>
-  </div>
 
-  <div id="album-view">
-    <div class="back-row">
-      <button class="back-btn" id="back-btn">← Semua Album</button>
+
+    <!-- ================= ADMIN MODAL ================= -->
+
+    <div class="modal-overlay" id="admin-modal">
+
+        <div class="modal-box">
+
+            <h3>
+                Verifikasi Admin
+            </h3>
+
+            <p class="modal-description">
+                Masukkan kata sandi akun admin untuk mengaktifkan hak pengelolaan arsip.
+            </p>
+
+            <input
+      type="password"
+      id="admin-pw-input"
+      class="modal-input"
+      placeholder="Kata sandi admin"
+      autocomplete="off"
+      maxlength="128"
+    >
+
+            <div id="admin-modal-error" class="modal-error">
+                Kata sandi admin salah.
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+        class="btn btn-ghost"
+        id="admin-cancel-btn"
+      >
+        Batal
+      </button>
+
+                <button
+        class="btn btn-primary"
+        id="admin-confirm-btn"
+      >
+        Verifikasi
+      </button>
+
+            </div>
+
+        </div>
+
     </div>
-    <div class="album-header">
-      <div>
-        <h2 id="album-title">Album</h2>
-        <div class="count" id="album-count">0 foto</div>
-      </div>
-      <div class="album-header-actions">
-        <button class="btn btn-danger" id="delete-album-btn">Hapus Album</button>
-        <button class="btn btn-primary" id="upload-btn">+ Unggah Foto</button>
-      </div>
+
+
+    <!-- ================= LIGHTBOX ================= -->
+
+    <div id="lightbox">
+
+        <button
+    class="lb-close"
+    id="lb-close"
+    aria-label="Tutup foto"
+  >
+
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+
+      <path d="M6 6l12 12"/>
+      <path d="M18 6L6 18"/>
+
+    </svg>
+
+  </button>
+
+        <img
+    id="lb-img"
+    src=""
+    alt="Foto"
+  >
+
     </div>
 
-    <div id="drop-zone">
-      <p>Seret &amp; lepas foto atau video di sini, atau klik untuk memilih</p>
-      <input type="file" id="file-input" accept="image/*,video/*" multiple>
-    </div>
 
-    <div class="photo-grid" id="photo-grid"></div>
-  </div>
-</div>
+    <!-- ================= TOAST ================= -->
 
-<div class="modal-overlay" id="album-modal">
-  <div class="modal-box">
-    <h3>Album Baru</h3>
-    <input type="text" id="new-album-name" placeholder="Nama album" maxlength="40">
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="cancel-album-btn">Batal</button>
-      <button class="btn btn-primary" id="confirm-album-btn">Buat</button>
-    </div>
-  </div>
-</div>
+    <div class="toast" id="toast"></div>
 
-<div class="modal-overlay" id="admin-modal">
-  <div class="modal-box">
-    <h3>Verifikasi Admin</h3>
-    <input type="password" id="admin-pw-input" placeholder="Kata sandi admin" maxlength="24">
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="admin-cancel-btn">Batal</button>
-      <button class="btn btn-primary" id="admin-confirm-btn">Verifikasi</button>
-    </div>
-  </div>
-</div>
 
-<div id="lightbox">
-  <div class="lb-close" id="lb-close">✕</div>
-  <img id="lb-img" src="" alt="Foto">
-  <video id="lb-video" src="" controls autoplay style="display:none;max-width:100%;max-height:100%;border-radius:8px;"></video>
-</div>
+    <!-- ================= FIREBASE + APP ================= -->
 
-<div class="toast" id="toast"></div>
+    <script type="module">
+        /*
+=========================================================
+ FIREBASE IMPORT
+=========================================================
+*/
 
-<script>
-const VAULT_PASSWORD = "it123";
-const ADMIN_PASSWORD = "admin1";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  setPersistence,
+  browserSessionPersistence
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js";
+
+
+/*
+=========================================================
+ 1. FIREBASE CONFIG
+=========================================================
+
+GANTI SEMUA VALUE DI BAWAH DENGAN CONFIG FIREBASE ANDA.
+
+Firebase Console
+→ Project settings
+→ General
+→ Your apps
+→ Web app
+→ Config
+=========================================================
+*/
+
+const firebaseConfig = {
+apiKey: "AIzaSyCIdM1fMzD29J-vILWuznKVbXKDnMsyp7A",
+authDomain: "server-d336e.firebaseapp.com",
+projectId: "server-d336e",
+storageBucket: "server-d336e.firebasestorage.app",
+messagingSenderId: "77281982681",
+appId: "1:77281982681:web:a1805a3dd8ab508250a6c8",
+measurementId: "G-YHJT5WYL9V"
+};
+
+
+/*
+=========================================================
+ 2. EMAIL AKUN
+=========================================================
+
+OWNER_EMAIL
+→ akun yang digunakan untuk membuka FOTO.
+
+ADMIN_EMAIL
+→ akun Firebase yang memiliki custom claim:
+
+admin: true
+
+PENTING:
+Custom claim admin harus dibuat menggunakan
+Firebase Admin SDK / Cloud Functions / environment
+server terpercaya.
+
+Jangan membuat custom claim dari browser.
+=========================================================
+*/
+
+const OWNER_EMAIL =
+  "it128@gmail.com";
+
+const ADMIN_EMAIL =
+  "adminit128@gmail.com";
+
+
+/*
+=========================================================
+ 3. INITIALIZE FIREBASE
+=========================================================
+*/
+
+const firebaseApp =
+  initializeApp(firebaseConfig);
+
+
+/*
+ Auth utama = OWNER
+*/
+
+const ownerAuth =
+  getAuth(firebaseApp);
+
+
+/*
+ App Firebase kedua.
+
+ Digunakan hanya untuk sesi ADMIN.
+
+ Auth state pada Firebase App kedua
+ terpisah dari Auth utama.
+*/
+
+const adminApp =
+  initializeApp(
+    firebaseConfig,
+    "admin-session"
+  );
+
+const adminAuth =
+  getAuth(adminApp);
+
+
+/*
+ Firestore dan Storage.
+
+ Keduanya menggunakan project yang sama.
+*/
+
+const db =
+  getFirestore(firebaseApp);
+
+const storage =
+  getStorage(firebaseApp);
+
+
+/*
+ Session browser.
+
+ Ketika tab/session selesai,
+ Firebase tidak menyimpan sesi permanen.
+*/
+
+await setPersistence(
+  ownerAuth,
+  browserSessionPersistence
+);
+
+await setPersistence(
+  adminAuth,
+  browserSessionPersistence
+);
+
+
+/*
+=========================================================
+ STATE
+=========================================================
+*/
+
+let ownerUid = null;
+
+let adminUid = null;
+
+let isAdmin = false;
 
 let albums = [];
+
 let currentAlbumId = null;
-let isAdmin = false;
+
 let pendingAdminAction = null;
 
-window.addEventListener('firebase-ready', async () => {
-  const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-  
-  onSnapshot(collection(window.dbFB, "albums"), (snapshot) => {
+let toastTimer = null;
+
+
+/*
+=========================================================
+ ELEMENTS
+=========================================================
+*/
+
+const lockScreen =
+  document.getElementById("lock-screen");
+
+const app =
+  document.getElementById("app");
+
+const pwInput =
+  document.getElementById("pw-input");
+
+const unlockBtn =
+  document.getElementById("unlock-btn");
+
+const lockError =
+  document.getElementById("lock-error");
+
+const albumsView =
+  document.getElementById("albums-view");
+
+const albumGrid =
+  document.getElementById("album-grid");
+
+const albumsEmpty =
+  document.getElementById("albums-empty");
+
+const albumsLoading =
+  document.getElementById("albums-loading");
+
+const albumView =
+  document.getElementById("album-view");
+
+const albumTitle =
+  document.getElementById("album-title");
+
+const albumCount =
+  document.getElementById("album-count");
+
+const photoGrid =
+  document.getElementById("photo-grid");
+
+const dropZone =
+  document.getElementById("drop-zone");
+
+const fileInput =
+  document.getElementById("file-input");
+
+const adminBtn =
+  document.getElementById("admin-btn");
+
+const adminBtnLabel =
+  document.getElementById("admin-btn-label");
+
+const adminModal =
+  document.getElementById("admin-modal");
+
+const adminPwInput =
+  document.getElementById("admin-pw-input");
+
+const adminModalError =
+  document.getElementById("admin-modal-error");
+
+const albumModal =
+  document.getElementById("album-modal");
+
+const newAlbumName =
+  document.getElementById("new-album-name");
+
+const lightbox =
+  document.getElementById("lightbox");
+
+const lbImg =
+  document.getElementById("lb-img");
+
+
+/*
+=========================================================
+ TOAST
+=========================================================
+*/
+
+function showToast(message){
+
+  const toast =
+    document.getElementById("toast");
+
+  toast.textContent =
+    message;
+
+  toast.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer =
+    setTimeout(() => {
+
+      toast.classList.remove("show");
+
+    }, 2800);
+}
+
+
+/*
+=========================================================
+ FIREBASE ERROR
+=========================================================
+*/
+
+function firebaseErrorMessage(error){
+
+  console.error(
+    "Firebase error:",
+    error
+  );
+
+  switch(error?.code){
+
+    case "auth/invalid-credential":
+      return "Email atau kata sandi salah.";
+
+    case "auth/wrong-password":
+      return "Kata sandi salah.";
+
+    case "auth/user-not-found":
+      return "Akun Firebase tidak ditemukan.";
+
+    case "auth/invalid-email":
+      return "Email Firebase tidak valid.";
+
+    case "auth/too-many-requests":
+      return "Terlalu banyak percobaan. Tunggu beberapa saat.";
+
+    case "auth/network-request-failed":
+      return "Tidak dapat terhubung ke Firebase.";
+
+    case "permission-denied":
+    case "firestore/permission-denied":
+      return "Akses Firestore ditolak. Periksa Security Rules.";
+
+    case "storage/unauthorized":
+      return "Akses Storage ditolak. Periksa Storage Rules.";
+
+    case "storage/quota-exceeded":
+      return "Kuota Storage Firebase habis.";
+
+    case "storage/canceled":
+      return "Upload dibatalkan.";
+
+    default:
+      return error?.message ||
+        "Terjadi kesalahan Firebase.";
+
+  }
+
+}
+
+
+function showFirebaseError(error){
+
+  showToast(
+    firebaseErrorMessage(error)
+  );
+
+}
+
+
+/*
+=========================================================
+ ESCAPE HTML
+=========================================================
+*/
+
+function escapeHtml(value){
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    value || "";
+
+  return div.innerHTML;
+
+}
+
+
+/*
+=========================================================
+ FIRESTORE PATH
+=========================================================
+*/
+
+function albumsCollection(){
+
+  if(!ownerUid){
+
+    throw new Error(
+      "Owner UID belum tersedia."
+    );
+
+  }
+
+  return collection(
+    db,
+    "users",
+    ownerUid,
+    "albums"
+  );
+
+}
+
+
+function albumDocument(albumId){
+
+  return doc(
+    db,
+    "users",
+    ownerUid,
+    "albums",
+    albumId
+  );
+
+}
+
+
+function photosCollection(albumId){
+
+  return collection(
+    db,
+    "users",
+    ownerUid,
+    "albums",
+    albumId,
+    "photos"
+  );
+
+}
+
+
+function photoDocument(
+  albumId,
+  photoId
+){
+
+  return doc(
+    db,
+    "users",
+    ownerUid,
+    "albums",
+    albumId,
+    "photos",
+    photoId
+  );
+
+}
+
+
+/*
+=========================================================
+ LOAD ALBUMS
+=========================================================
+*/
+
+async function loadAlbums(){
+
+  if(!ownerUid){
+
     albums = [];
-    snapshot.forEach((doc) => {
-      albums.push(doc.data());
-    });
+
     renderAlbums();
-    if(currentAlbumId) renderAlbumDetail();
-  });
-});
 
-async function saveAlbumToCloud(album) {
-  if(!window.FB_ENABLED) return;
-  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-  await setDoc(doc(window.dbFB, "albums", album.id), album);
-}
+    return;
 
-async function deleteAlbumFromCloud(id) {
-  if(!window.FB_ENABLED) return;
-  const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-  await deleteDoc(doc(window.dbFB, "albums", id));
-}
-
-const lockScreen = document.getElementById('lock-screen');
-const pwInput = document.getElementById('pw-input');
-const unlockBtn = document.getElementById('unlock-btn');
-const lockError = document.getElementById('lock-error');
-const app = document.getElementById('app');
-
-function tryUnlock(){
-  if(pwInput.value === VAULT_PASSWORD){
-    lockScreen.classList.add('hidden');
-    app.classList.add('visible');
-    setTimeout(()=> lockScreen.style.display='none', 650);
-  } else {
-    lockError.classList.add('show');
-    pwInput.value='';
   }
+
+  try{
+
+    albumsLoading.style.display =
+      "block";
+
+    albumGrid.style.display =
+      "none";
+
+    albumsEmpty.style.display =
+      "none";
+
+
+    const snapshot =
+      await getDocs(
+        albumsCollection()
+      );
+
+
+    const result = [];
+
+
+    for(const albumDoc of snapshot.docs){
+
+      const albumData =
+        albumDoc.data();
+
+
+      const photosSnapshot =
+        await getDocs(
+          photosCollection(
+            albumDoc.id
+          )
+        );
+
+
+      const photos =
+        photosSnapshot.docs
+          .map(photoDoc => {
+
+            const data =
+              photoDoc.data();
+
+            return {
+
+              id:
+                photoDoc.id,
+
+              src:
+                data.url || "",
+
+              name:
+                data.name || "Foto",
+
+              storagePath:
+                data.storagePath || "",
+
+              contentType:
+                data.contentType || "",
+
+              size:
+                data.size || 0
+
+            };
+
+          });
+
+
+      result.push({
+
+        id:
+          albumDoc.id,
+
+        name:
+          albumData.name || "Album",
+
+        photos
+
+      });
+
+    }
+
+
+    albums =
+      result;
+
+
+    renderAlbums();
+
+
+  }catch(error){
+
+    showFirebaseError(error);
+
+  }finally{
+
+    albumsLoading.style.display =
+      "none";
+
+  }
+
 }
-unlockBtn.addEventListener('click', tryUnlock);
-pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
 
-document.getElementById('lock-btn').addEventListener('click', ()=>{
-  lockScreen.style.display='flex';
-  setTimeout(()=> lockScreen.classList.remove('hidden'), 10);
-  app.classList.remove('visible');
-  pwInput.value='';
-});
 
-const adminBtn = document.getElementById('admin-btn');
-const adminModal = document.getElementById('admin-modal');
-const adminPwInput = document.getElementById('admin-pw-input');
+/*
+=========================================================
+ OWNER LOGIN
+=========================================================
+*/
 
-function openAdminModal(action){
-  if(isAdmin){ if(action) action(); return; }
-  pendingAdminAction = action || null;
-  adminPwInput.value='';
-  adminModal.classList.add('visible');
+async function tryUnlock(){
+
+  const password =
+    pwInput.value.trim();
+
+
+  if(!password){
+
+    pwInput.focus();
+
+    return;
+
+  }
+
+
+  unlockBtn.disabled =
+    true;
+
+  unlockBtn.textContent =
+    "MEMBUKA...";
+
+  lockError.classList.remove(
+    "show"
+  );
+
+
+  try{
+
+    /*
+      Login menggunakan akun Owner.
+    */
+
+    const credential =
+      await signInWithEmailAndPassword(
+        ownerAuth,
+        OWNER_EMAIL,
+        password
+      );
+
+
+    ownerUid =
+      credential.user.uid;
+
+
+    /*
+      Pastikan admin session tidak aktif.
+    */
+
+    try{
+
+      await signOut(adminAuth);
+
+    }catch(_){
+
+      // Tidak masalah jika belum login.
+
+    }
+
+
+    isAdmin =
+      false;
+
+    adminUid =
+      null;
+
+    setAdminMode(false);
+
+
+    /*
+      Ambil album.
+    */
+
+    await loadAlbums();
+
+
+    /*
+      Tampilkan app.
+    */
+
+    lockScreen.classList.add(
+      "hidden"
+    );
+
+    app.classList.add(
+      "visible"
+    );
+
+
+    setTimeout(() => {
+
+      lockScreen.style.display =
+        "none";
+
+    }, 650);
+
+
+  }catch(error){
+
+    console.error(error);
+
+    lockError.textContent =
+      firebaseErrorMessage(error);
+
+    lockError.classList.add(
+      "show"
+    );
+
+    pwInput.classList.add(
+      "shake"
+    );
+
+
+    setTimeout(() => {
+
+      pwInput.classList.remove(
+        "shake"
+      );
+
+    }, 400);
+
+
+    pwInput.value = "";
+
+    pwInput.focus();
+
+
+  }finally{
+
+    unlockBtn.disabled =
+      false;
+
+    unlockBtn.textContent =
+      "Buka FOTO";
+
+  }
+
 }
 
-adminBtn.addEventListener('click', ()=>{
+
+unlockBtn.addEventListener(
+  "click",
+  tryUnlock
+);
+
+
+pwInput.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Enter"){
+
+      tryUnlock();
+
+    }
+
+  }
+);
+
+
+pwInput.addEventListener(
+  "input",
+  () => {
+
+    lockError.classList.remove(
+      "show"
+    );
+
+  }
+);
+
+
+/*
+=========================================================
+ LOCK / LOGOUT
+=========================================================
+*/
+
+document
+  .getElementById("lock-btn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      try{
+
+        await signOut(ownerAuth);
+
+      }catch(error){
+
+        console.warn(
+          "Owner signout:",
+          error
+        );
+
+      }
+
+
+      try{
+
+        await signOut(adminAuth);
+
+      }catch(error){
+
+        console.warn(
+          "Admin signout:",
+          error
+        );
+
+      }
+
+
+      ownerUid =
+        null;
+
+      adminUid =
+        null;
+
+      isAdmin =
+        false;
+
+      albums =
+        [];
+
+      currentAlbumId =
+        null;
+
+      pendingAdminAction =
+        null;
+
+
+      setAdminMode(false);
+
+
+      albumView.classList.remove(
+        "visible"
+      );
+
+      albumsView.style.display =
+        "block";
+
+
+      app.classList.remove(
+        "visible"
+      );
+
+
+      lockScreen.style.display =
+        "flex";
+
+
+      requestAnimationFrame(() => {
+
+        lockScreen.classList.remove(
+          "hidden"
+        );
+
+      });
+
+
+      pwInput.value =
+        "";
+
+      pwInput.focus();
+
+    }
+  );
+
+
+/*
+=========================================================
+ ADMIN MODE
+=========================================================
+*/
+
+function setAdminMode(enabled){
+
+  isAdmin =
+    Boolean(enabled);
+
+
+  adminBtn.classList.toggle(
+    "btn-admin-active",
+    isAdmin
+  );
+
+
+  adminBtnLabel.textContent =
+    isAdmin
+      ? "Admin Aktif"
+      : "Masuk Admin";
+
+
+  /*
+    Tombol hapus album.
+
+    Tetap tampil, tetapi statusnya
+    dikontrol saat diklik.
+  */
+
+}
+
+
+function openAdminModal(
+  actionIfSuccess = null
+){
+
+  /*
+    Kalau sudah admin,
+    langsung jalankan action.
+  */
+
   if(isAdmin){
-    isAdmin = false;
-    adminBtn.classList.remove('btn-admin-active');
-    document.getElementById('admin-btn-label').textContent = 'Masuk Admin';
-    showToast('Admin dinonaktifkan');
-  } else {
-    openAdminModal(null);
-  }
-});
 
-document.getElementById('admin-confirm-btn').addEventListener('click', ()=>{
-  if(adminPwInput.value === ADMIN_PASSWORD){
-    isAdmin = true;
-    adminBtn.classList.add('btn-admin-active');
-    document.getElementById('admin-btn-label').textContent = 'Admin Aktif';
-    adminModal.classList.remove('visible');
-    if(pendingAdminAction) pendingAdminAction();
-    showToast('Admin aktif');
-  } else {
-    showToast('Sandi admin salah');
+    if(actionIfSuccess){
+
+      actionIfSuccess();
+
+    }
+
+    return;
+
   }
-});
-document.getElementById('admin-cancel-btn').addEventListener('click', ()=> adminModal.classList.remove('visible'));
+
+
+  pendingAdminAction =
+    actionIfSuccess;
+
+
+  adminModalError.style.display =
+    "none";
+
+  adminPwInput.value =
+    "";
+
+  adminModal.classList.add(
+    "visible"
+  );
+
+
+  setTimeout(() => {
+
+    adminPwInput.focus();
+
+  }, 80);
+
+}
+
+
+function closeAdminModal(){
+
+  adminModal.classList.remove(
+    "visible"
+  );
+
+}
+
+
+/*
+=========================================================
+ ADMIN LOGIN
+=========================================================
+*/
+
+async function confirmAdminPassword(){
+
+  const password =
+    adminPwInput.value.trim();
+
+
+  if(!password){
+
+    adminPwInput.focus();
+
+    return;
+
+  }
+
+
+  adminModalError.style.display =
+    "none";
+
+
+  const action =
+    pendingAdminAction;
+
+
+  try{
+
+    /*
+      Login admin menggunakan
+      Firebase App kedua.
+
+      Sesi Owner tetap hidup.
+    */
+
+    const credential =
+      await signInWithEmailAndPassword(
+        adminAuth,
+        ADMIN_EMAIL,
+        password
+      );
+
+
+    adminUid =
+      credential.user.uid;
+
+
+    /*
+      Ambil token custom claims.
+
+      Admin harus mempunyai:
+      admin: true
+
+      pada Firebase Authentication.
+    */
+
+    const tokenResult =
+      await credential.user.getIdTokenResult(
+        true
+      );
+
+
+    const hasAdminClaim =
+      tokenResult.claims.admin === true;
+
+
+    if(!hasAdminClaim){
+
+      await signOut(adminAuth);
+
+      adminUid =
+        null;
+
+      throw new Error(
+        "Akun admin belum memiliki custom claim admin=true."
+      );
+
+    }
+
+
+    setAdminMode(true);
+
+
+    closeAdminModal();
+
+
+    /*
+      Action yang meminta autentikasi admin
+      sekarang dijalankan.
+    */
+
+    if(action){
+
+      pendingAdminAction =
+        null;
+
+      await action();
+
+    }else{
+
+      pendingAdminAction =
+        null;
+
+      showToast(
+        "Mode admin aktif."
+      );
+
+      if(currentAlbumId){
+
+        renderAlbumDetail();
+
+      }
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Admin login:",
+      error
+    );
+
+
+    adminModalError.textContent =
+      error?.message?.includes(
+        "custom claim"
+      )
+      ? "Akun berhasil login, tetapi belum diberi hak admin."
+      : firebaseErrorMessage(error);
+
+
+    adminModalError.style.display =
+      "block";
+
+
+    adminPwInput.value =
+      "";
+
+    adminPwInput.focus();
+
+
+  }
+
+}
+
+
+/*
+=========================================================
+ ADMIN BUTTON
+=========================================================
+*/
+
+adminBtn.addEventListener(
+  "click",
+  async () => {
+
+    if(!isAdmin){
+
+      openAdminModal();
+
+      return;
+
+    }
+
+
+    /*
+      Keluar admin.
+
+      Owner tetap login.
+    */
+
+    try{
+
+      await signOut(adminAuth);
+
+      adminUid =
+        null;
+
+      setAdminMode(false);
+
+      renderAlbumDetail();
+
+      showToast(
+        "Mode admin dinonaktifkan."
+      );
+
+    }catch(error){
+
+      showFirebaseError(error);
+
+    }
+
+  }
+);
+
+
+document
+  .getElementById("admin-cancel-btn")
+  .addEventListener(
+    "click",
+    closeAdminModal
+  );
+
+
+document
+  .getElementById("admin-confirm-btn")
+  .addEventListener(
+    "click",
+    confirmAdminPassword
+  );
+
+
+adminPwInput.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Enter"){
+
+      confirmAdminPassword();
+
+    }
+
+  }
+);
+
+
+adminModal.addEventListener(
+  "click",
+  event => {
+
+    if(event.target === adminModal){
+
+      closeAdminModal();
+
+    }
+
+  }
+);
+
+
+/*
+=========================================================
+ RENDER ALBUMS
+=========================================================
+*/
 
 function renderAlbums(){
-  const grid = document.getElementById('album-grid');
-  const empty = document.getElementById('albums-empty');
-  if(albums.length === 0){
-    empty.style.display='block';
-    grid.style.display='none';
+
+  if(!albumGrid){
+
     return;
+
   }
-  empty.style.display='none';
-  grid.style.display='grid';
-  grid.innerHTML='';
 
-  albums.forEach(album=>{
-    const card = document.createElement('div');
-    card.className='album-card';
-    const cover = album.photos[0];
-    let coverHtml = `<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>`;
-    if(cover && cover.type === 'video'){
-      coverHtml = `<video src="${cover.src}" muted playsinline></video>`;
-    } else if(cover){
-      coverHtml = `<img src="${cover.src}" alt="">`;
+
+  albumGrid.innerHTML =
+    "";
+
+
+  if(albums.length === 0){
+
+    albumsEmpty.style.display =
+      "block";
+
+    albumGrid.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  albumsEmpty.style.display =
+    "none";
+
+  albumGrid.style.display =
+    "grid";
+
+
+  albums.forEach(
+    album => {
+
+      const card =
+        document.createElement("div");
+
+
+      card.className =
+        "album-card";
+
+
+      const cover =
+        album.photos[0];
+
+
+      card.innerHTML = `
+
+        <div class="album-cover">
+
+          <div class="perf top">
+            ${"<span></span>".repeat(8)}
+          </div>
+
+          ${
+            cover
+            ?
+            `
+              <img
+                src="${escapeHtml(cover.src)}"
+                alt=""
+                loading="lazy"
+              >
+            `
+            :
+            `
+              <svg
+                class="empty-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+              >
+
+                <rect
+                  x="3"
+                  y="5"
+                  width="18"
+                  height="14"
+                  rx="2"
+                />
+
+                <circle
+                  cx="9"
+                  cy="10"
+                  r="1.6"
+                />
+
+                <path
+                  d="M21 16l-5-5-4 4-3-3-5 5"
+                />
+
+              </svg>
+            `
+          }
+
+          <div class="perf bottom">
+            ${"<span></span>".repeat(8)}
+          </div>
+
+        </div>
+
+        <div class="album-info">
+
+          <p class="album-name">
+            ${escapeHtml(album.name)}
+          </p>
+
+          <p class="album-meta">
+            ${album.photos.length} FOTO
+          </p>
+
+        </div>
+      `;
+
+
+      card.addEventListener(
+        "click",
+        () => openAlbum(album.id)
+      );
+
+
+      albumGrid.appendChild(
+        card
+      );
+
     }
-    card.innerHTML = `
-      <div class="album-cover">${coverHtml}</div>
-      <div class="album-info">
-        <p class="album-name">${escapeHtml(album.name)}</p>
-        <p class="album-meta">${album.photos.length} ITEM</p>
-      </div>`;
-    card.addEventListener('click', ()=> openAlbum(album.id));
-    grid.appendChild(card);
-  });
+  );
 
-  const newCard = document.createElement('div');
-  newCard.className='new-album-card';
-  newCard.innerHTML = `<span>+ Album Baru</span>`;
-  newCard.addEventListener('click', ()=> document.getElementById('album-modal').classList.add('visible'));
-  grid.appendChild(newCard);
+
+  /*
+    Kartu album baru.
+  */
+
+  const newCard =
+    document.createElement("div");
+
+
+  newCard.className =
+    "new-album-card";
+
+
+  newCard.innerHTML = `
+
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+    >
+
+      <path d="M12 5v14"/>
+      <path d="M5 12h14"/>
+
+    </svg>
+
+    <span>
+      Album Baru
+    </span>
+
+  `;
+
+
+  newCard.addEventListener(
+    "click",
+    openAlbumModal
+  );
+
+
+  albumGrid.appendChild(
+    newCard
+  );
+
 }
 
-function escapeHtml(str){ const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
 
-document.getElementById('confirm-album-btn').addEventListener('click', async ()=>{
-  const name = document.getElementById('new-album-name').value.trim();
-  if(!name) return;
-  const newAlbum = { id: 'a'+Date.now(), name, photos: [] };
-  await saveAlbumToCloud(newAlbum);
-  document.getElementById('album-modal').classList.remove('visible');
-  document.getElementById('new-album-name').value = '';
-  showToast('Album dibuat');
-});
-document.getElementById('empty-new-album-btn').addEventListener('click', ()=> document.getElementById('album-modal').classList.add('visible'));
-document.getElementById('cancel-album-btn').addEventListener('click', ()=> document.getElementById('album-modal').classList.remove('visible'));
+/*
+=========================================================
+ NEW ALBUM MODAL
+=========================================================
+*/
+
+function openAlbumModal(){
+
+  if(isAdmin){
+
+    showToast(
+      "Nonaktifkan mode admin untuk membuat album."
+    );
+
+    return;
+
+  }
+
+
+  albumModal.classList.add(
+    "visible"
+  );
+
+
+  newAlbumName.value =
+    "";
+
+
+  setTimeout(() => {
+
+    newAlbumName.focus();
+
+  }, 80);
+
+}
+
+
+function closeAlbumModal(){
+
+  albumModal.classList.remove(
+    "visible"
+  );
+
+}
+
+
+document
+  .getElementById(
+    "empty-new-album-btn"
+  )
+  .addEventListener(
+    "click",
+    openAlbumModal
+  );
+
+
+document
+  .getElementById(
+    "cancel-album-btn"
+  )
+  .addEventListener(
+    "click",
+    closeAlbumModal
+  );
+
+
+albumModal.addEventListener(
+  "click",
+  event => {
+
+    if(event.target === albumModal){
+
+      closeAlbumModal();
+
+    }
+
+  }
+);
+
+
+document
+  .getElementById(
+    "confirm-album-btn"
+  )
+  .addEventListener(
+    "click",
+    createAlbum
+  );
+
+
+newAlbumName.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Enter"){
+
+      createAlbum();
+
+    }
+
+  }
+);
+
+
+/*
+=========================================================
+ CREATE ALBUM
+=========================================================
+*/
+
+async function createAlbum(){
+
+  if(isAdmin){
+
+    showToast(
+      "Nonaktifkan mode admin untuk membuat album."
+    );
+
+    return;
+
+  }
+
+
+  const name =
+    newAlbumName.value.trim();
+
+
+  if(!name){
+
+    newAlbumName.focus();
+
+    return;
+
+  }
+
+
+  if(!ownerUid){
+
+    showToast(
+      "Sesi owner tidak tersedia."
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "confirm-album-btn"
+    );
+
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "Menyimpan...";
+
+
+  try{
+
+    const albumId =
+      "a_" +
+      crypto.randomUUID();
+
+
+    await setDoc(
+      albumDocument(albumId),
+      {
+
+        name,
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    albums.push({
+
+      id:
+        albumId,
+
+      name,
+
+      photos:
+        []
+
+    });
+
+
+    closeAlbumModal();
+
+    renderAlbums();
+
+
+    showToast(
+      `Album "${name}" dibuat.`
+    );
+
+
+  }catch(error){
+
+    showFirebaseError(error);
+
+  }finally{
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Buat";
+
+  }
+
+}
+
+
+/*
+=========================================================
+ OPEN ALBUM
+=========================================================
+*/
+
+function getCurrentAlbum(){
+
+  return albums.find(
+    album =>
+      album.id === currentAlbumId
+  );
+
+}
+
 
 function openAlbum(id){
-  currentAlbumId = id;
-  document.getElementById('albums-view').style.display='none';
-  document.getElementById('album-view').classList.add('visible');
+
+  currentAlbumId =
+    id;
+
+
+  albumsView.style.display =
+    "none";
+
+
+  albumView.classList.add(
+    "visible"
+  );
+
+
   renderAlbumDetail();
+
 }
 
-document.getElementById('back-btn').addEventListener('click', ()=>{
-  currentAlbumId = null;
-  document.getElementById('album-view').classList.remove('visible');
-  document.getElementById('albums-view').style.display='block';
-});
 
-function getCurrentAlbum(){ return albums.find(a=>a.id===currentAlbumId); }
+document
+  .getElementById("back-btn")
+  .addEventListener(
+    "click",
+    () => {
+
+      currentAlbumId =
+        null;
+
+
+      albumView.classList.remove(
+        "visible"
+      );
+
+
+      albumsView.style.display =
+        "block";
+
+
+      renderAlbums();
+
+    }
+  );
+
+
+/*
+=========================================================
+ RENDER PHOTOS
+=========================================================
+*/
 
 function renderAlbumDetail(){
-  const album = getCurrentAlbum();
-  if(!album) return;
-  document.getElementById('album-title').textContent = album.name;
-  document.getElementById('album-count').textContent = album.photos.length + ' item';
-  const grid = document.getElementById('photo-grid');
-  grid.innerHTML='';
-  album.photos.forEach(photo=>{
-    const isVideo = photo.type === 'video';
-    const tile = document.createElement('div');
-    tile.className='photo-tile';
-    tile.innerHTML = isVideo ? `<video src="${photo.src}" muted playsinline></video><span class="type-tag">Video</span>` : `<img src="${photo.src}">`;
-    tile.innerHTML += `<div class="del-photo">✕</div>`;
-    tile.querySelector('img, video').addEventListener('click', ()=> openLightbox(photo.src, photo.type));
-    tile.querySelector('.del-photo').addEventListener('click', (e)=>{
-      e.stopPropagation();
-      openAdminModal(()=> deletePhoto(photo.id));
-    });
-    grid.appendChild(tile);
-  });
-}
 
-async function deletePhoto(photoId){
-  const album = getCurrentAlbum();
-  if(!album) return;
-  album.photos = album.photos.filter(p=>p.id!==photoId);
-  await saveAlbumToCloud(album);
-  renderAlbumDetail();
-  showToast('Foto dihapus');
-}
+  const album =
+    getCurrentAlbum();
 
-document.getElementById('delete-album-btn').addEventListener('click', ()=>{
-  openAdminModal(async ()=>{
-    if(confirm('Hapus album ini?')){
-      await deleteAlbumFromCloud(currentAlbumId);
-      currentAlbumId = null;
-      document.getElementById('album-view').classList.remove('visible');
-      document.getElementById('albums-view').style.display='block';
-      showToast('Album dihapus');
+
+  if(!album){
+
+    return;
+
+  }
+
+
+  albumTitle.textContent =
+    album.name;
+
+
+  albumCount.textContent =
+    `${album.photos.length} foto`;
+
+
+  photoGrid.innerHTML =
+    "";
+
+
+  if(album.photos.length === 0){
+
+    photoGrid.innerHTML = `
+
+      <div
+        class="empty-state"
+        style="grid-column:1/-1;"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+        >
+
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="14"
+            rx="2"
+          />
+
+          <circle
+            cx="9"
+            cy="10"
+            r="1.6"
+          />
+
+          <path
+            d="M21 16l-5-5-4 4-3-3-5 5"
+          />
+
+        </svg>
+
+        <h3>
+          Album masih kosong
+        </h3>
+
+        <p>
+          Unggah foto pertama Anda ke album ini.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  album.photos.forEach(
+    photo => {
+
+      const tile =
+        document.createElement("div");
+
+
+      tile.className =
+        "photo-tile";
+
+
+      tile.innerHTML = `
+
+        <img
+          src="${escapeHtml(photo.src)}"
+          alt="${escapeHtml(photo.name)}"
+          loading="lazy"
+        >
+
+        <button
+          type="button"
+          class="del-photo ${isAdmin ? "" : "locked"}"
+          title="${
+            isAdmin
+            ? "Hapus foto"
+            : "Hanya admin"
+          }"
+          aria-label="Hapus foto"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+
+            <path d="M6 6l12 12"/>
+            <path d="M18 6L6 18"/>
+
+          </svg>
+
+        </button>
+
+      `;
+
+
+      const image =
+        tile.querySelector("img");
+
+
+      image.addEventListener(
+        "click",
+        () => {
+
+          openLightbox(
+            photo.src
+          );
+
+        }
+      );
+
+
+      const deleteButton =
+        tile.querySelector(
+          ".del-photo"
+        );
+
+
+      deleteButton.addEventListener(
+        "click",
+        event => {
+
+          event.stopPropagation();
+
+
+          if(!isAdmin){
+
+            showToast(
+              "Masuk Admin untuk menghapus foto."
+            );
+
+            return;
+
+          }
+
+
+          deletePhoto(
+            photo.id
+          );
+
+        }
+      );
+
+
+      photoGrid.appendChild(
+        tile
+      );
+
     }
-  });
-});
+  );
 
-const fileInput = document.getElementById('file-input');
-document.getElementById('upload-btn').addEventListener('click', ()=> fileInput.click());
-document.getElementById('drop-zone').addEventListener('click', ()=> fileInput.click());
-
-fileInput.addEventListener('change', async (e)=>{
-  const album = getCurrentAlbum();
-  if(!album) return;
-  const files = Array.from(e.target.files);
-  for(let file of files){
-    const reader = new FileReader();
-    await new Promise(resolve => {
-      reader.onload = async (ev) => {
-        album.photos.push({
-          id: 'p' + Date.now() + Math.random().toString(16).slice(2),
-          src: ev.target.result,
-          type: file.type.startsWith('video/') ? 'video' : 'image'
-        });
-        resolve();
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-  await saveAlbumToCloud(album);
-  renderAlbumDetail();
-  showToast('Foto diunggah');
-  fileInput.value='';
-});
-
-function openLightbox(src, type){
-  const lb = document.getElementById('lightbox');
-  const img = document.getElementById('lb-img');
-  const vid = document.getElementById('lb-video');
-  if(type === 'video'){
-    img.style.display='none'; vid.style.display='block'; vid.src=src;
-  } else {
-    vid.style.display='none'; img.style.display='block'; img.src=src;
-  }
-  lb.classList.add('visible');
 }
-document.getElementById('lb-close').addEventListener('click', ()=> document.getElementById('lightbox').classList.remove('visible'));
 
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=> t.classList.remove('show'), 2000);
+
+/*
+=========================================================
+ DELETE PHOTO
+=========================================================
+*/
+
+async function deletePhoto(
+  photoId
+){
+
+  if(!isAdmin){
+
+    showToast(
+      "Hanya admin yang dapat menghapus foto."
+    );
+
+    return;
+
+  }
+
+
+  const album =
+    getCurrentAlbum();
+
+
+  if(!album){
+
+    return;
+
+  }
+
+
+  const photo =
+    album.photos.find(
+      item =>
+        item.id === photoId
+    );
+
+
+  if(!photo){
+
+    return;
+
+  }
+
+
+  const confirmed =
+    confirm(
+      `Hapus foto "${photo.name}"?`
+    );
+
+
+  if(!confirmed){
+
+    return;
+
+  }
+
+
+  try{
+
+    /*
+      Pastikan admin session masih valid.
+    */
+
+    await requireAdmin();
+
+
+    /*
+      Hapus Storage.
+    */
+
+    if(photo.storagePath){
+
+      try{
+
+        await deleteObject(
+          ref(
+            storage,
+            photo.storagePath
+          )
+        );
+
+      }catch(storageError){
+
+        /*
+          Jika file sudah tidak ada,
+          metadata Firestore tetap dihapus.
+        */
+
+        console.warn(
+          "Storage delete:",
+          storageError
+        );
+
+      }
+
+    }
+
+
+    /*
+      Hapus metadata Firestore.
+    */
+
+    await deleteDoc(
+      photoDocument(
+        album.id,
+        photo.id
+      )
+    );
+
+
+    /*
+      Update state.
+    */
+
+    album.photos =
+      album.photos.filter(
+        item =>
+          item.id !== photoId
+      );
+
+
+    renderAlbumDetail();
+
+    renderAlbums();
+
+
+    showToast(
+      "Foto dihapus."
+    );
+
+
+  }catch(error){
+
+    showFirebaseError(error);
+
+  }
+
 }
-</script>
+
+
+/*
+=========================================================
+ REQUIRE ADMIN
+=========================================================
+*/
+
+async function requireAdmin(){
+
+  if(!isAdmin){
+
+    throw new Error(
+      "Mode admin belum aktif."
+    );
+
+  }
+
+
+  const user =
+    adminAuth.currentUser;
+
+
+  if(!user){
+
+    throw new Error(
+      "Sesi admin sudah berakhir."
+    );
+
+  }
+
+
+  const tokenResult =
+    await user.getIdTokenResult(
+      true
+    );
+
+
+  if(
+    tokenResult.claims.admin !== true
+  ){
+
+    setAdminMode(false);
+
+    throw new Error(
+      "Akun ini tidak memiliki hak admin."
+    );
+
+  }
+
+}
+
+
+/*
+=========================================================
+ DELETE ALBUM
+=========================================================
+*/
+
+document
+  .getElementById(
+    "delete-album-btn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if(!isAdmin){
+
+        openAdminModal(
+          deleteCurrentAlbum
+        );
+
+        return;
+
+      }
+
+
+      deleteCurrentAlbum();
+
+    }
+  );
+
+
+async function deleteCurrentAlbum(){
+
+  if(!isAdmin){
+
+    return;
+
+  }
+
+
+  const album =
+    getCurrentAlbum();
+
+
+  if(!album){
+
+    return;
+
+  }
+
+
+  const confirmed =
+    confirm(
+      `Hapus album "${album.name}" beserta semua fotonya?`
+    );
+
+
+  if(!confirmed){
+
+    return;
+
+  }
+
+
+  try{
+
+    await requireAdmin();
+
+
+    /*
+      Hapus semua foto.
+    */
+
+    for(
+      const photo
+      of album.photos
+    ){
+
+      /*
+        Storage
+      */
+
+      if(photo.storagePath){
+
+        try{
+
+          await deleteObject(
+            ref(
+              storage,
+              photo.storagePath
+            )
+          );
+
+        }catch(error){
+
+          console.warn(
+            "Storage delete:",
+            error
+          );
+
+        }
+
+      }
+
+
+      /*
+        Firestore metadata
+      */
+
+      await deleteDoc(
+        photoDocument(
+          album.id,
+          photo.id
+        )
+      );
+
+    }
+
+
+    /*
+      Hapus dokumen album.
+    */
+
+    await deleteDoc(
+      albumDocument(
+        album.id
+      )
+    );
+
+
+    /*
+      Update state.
+    */
+
+    albums =
+      albums.filter(
+        item =>
+          item.id !== album.id
+      );
+
+
+    currentAlbumId =
+      null;
+
+
+    albumView.classList.remove(
+      "visible"
+    );
+
+
+    albumsView.style.display =
+      "block";
+
+
+    renderAlbums();
+
+
+    showToast(
+      "Album dihapus."
+    );
+
+
+  }catch(error){
+
+    showFirebaseError(error);
+
+  }
+
+}
+
+
+/*
+=========================================================
+ UPLOAD BUTTON
+=========================================================
+*/
+
+document
+  .getElementById(
+    "upload-btn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if(isAdmin){
+
+        showToast(
+          "Nonaktifkan mode admin untuk mengunggah foto."
+        );
+
+        return;
+
+      }
+
+      fileInput.click();
+
+    }
+  );
+
+
+/*
+=========================================================
+ DROP ZONE CLICK
+=========================================================
+*/
+
+dropZone.addEventListener(
+  "click",
+  () => {
+
+    if(isAdmin){
+
+      showToast(
+        "Nonaktifkan mode admin untuk mengunggah foto."
+      );
+
+      return;
+
+    }
+
+    fileInput.click();
+
+  }
+);
+
+
+/*
+=========================================================
+ FILE INPUT
+=========================================================
+*/
+
+fileInput.addEventListener(
+  "change",
+  event => {
+
+    handleFiles(
+      event.target.files
+    );
+
+  }
+);
+
+
+/*
+=========================================================
+ DRAG DROP
+=========================================================
+*/
+
+[
+  "dragenter",
+  "dragover"
+].forEach(
+  eventName => {
+
+    dropZone.addEventListener(
+      eventName,
+      event => {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if(!isAdmin){
+
+          dropZone.classList.add(
+            "drag-over"
+          );
+
+        }
+
+      }
+    );
+
+  }
+);
+
+
+[
+  "dragleave",
+  "drop"
+].forEach(
+  eventName => {
+
+    dropZone.addEventListener(
+      eventName,
+      event => {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        dropZone.classList.remove(
+          "drag-over"
+        );
+
+      }
+    );
+
+  }
+);
+
+
+dropZone.addEventListener(
+  "drop",
+  event => {
+
+    if(isAdmin){
+
+      showToast(
+        "Nonaktifkan mode admin untuk mengunggah foto."
+      );
+
+      return;
+
+    }
+
+
+    handleFiles(
+      event.dataTransfer.files
+    );
+
+  }
+);
+
+
+/*
+=========================================================
+ HANDLE FILES
+=========================================================
+*/
+
+async function handleFiles(
+  fileList
+){
+
+  if(isAdmin){
+
+    showToast(
+      "Nonaktifkan mode admin untuk mengunggah foto."
+    );
+
+    return;
+
+  }
+
+
+  const album =
+    getCurrentAlbum();
+
+
+  if(!album){
+
+    return;
+
+  }
+
+
+  const files =
+    Array.from(fileList || []);
+
+
+  const validTypes =
+    [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+
+  const imageFiles =
+    files.filter(
+      file =>
+        validTypes.includes(
+          file.type
+        )
+    );
+
+
+  if(imageFiles.length === 0){
+
+    showToast(
+      "Pilih JPG, PNG, atau WEBP."
+    );
+
+    return;
+
+  }
+
+
+  const maxSize =
+    20 * 1024 * 1024;
+
+
+  const validFiles =
+    imageFiles.filter(
+      file =>
+        file.size <= maxSize
+    );
+
+
+  if(
+    validFiles.length !==
+    imageFiles.length
+  ){
+
+    showToast(
+      "Beberapa file melebihi batas 20 MB."
+    );
+
+  }
+
+
+  if(validFiles.length === 0){
+
+    return;
+
+  }
+
+
+  const dropText =
+    dropZone.querySelector("p");
+
+
+  const originalText =
+    dropText.textContent;
+
+
+  let successCount =
+    0;
+
+
+  dropText.textContent =
+    "Mengunggah foto...";
+
+
+  try{
+
+    for(
+      const file
+      of validFiles
+    ){
+
+      /*
+        ID unik.
+      */
+
+      const photoId =
+        "p_" +
+        crypto.randomUUID();
+
+
+      /*
+        Storage path.
+
+        users/
+          OWNER_UID/
+            albums/
+              ALBUM_ID/
+                PHOTO_ID
+      */
+
+      const storagePath =
+        `users/${ownerUid}/albums/${album.id}/${photoId}`;
+
+
+      const storageRef =
+        ref(
+          storage,
+          storagePath
+        );
+
+
+      /*
+        Upload.
+      */
+
+      await uploadBytes(
+        storageRef,
+        file,
+        {
+          contentType:
+            file.type
+        }
+      );
+
+
+      /*
+        Download URL.
+      */
+
+      const downloadURL =
+        await getDownloadURL(
+          storageRef
+        );
+
+
+      /*
+        Metadata Firestore.
+      */
+
+      await setDoc(
+        photoDocument(
+          album.id,
+          photoId
+        ),
+        {
+
+          name:
+            file.name,
+
+          url:
+            downloadURL,
+
+          storagePath,
+
+          contentType:
+            file.type,
+
+          size:
+            file.size,
+
+          createdAt:
+            serverTimestamp()
+
+        }
+      );
+
+
+      /*
+        Update state.
+      */
+
+      album.photos.push({
+
+        id:
+          photoId,
+
+        src:
+          downloadURL,
+
+        name:
+          file.name,
+
+        storagePath,
+
+        contentType:
+          file.type,
+
+        size:
+          file.size
+
+      });
+
+
+      successCount++;
+
+
+      renderAlbumDetail();
+
+    }
+
+
+    renderAlbums();
+
+
+    showToast(
+      `${successCount} foto berhasil diunggah.`
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "Upload error:",
+      error
+    );
+
+
+    showFirebaseError(
+      error
+    );
+
+
+  }finally{
+
+    dropText.textContent =
+      originalText;
+
+    fileInput.value =
+      "";
+
+  }
+
+}
+
+
+/*
+=========================================================
+ LIGHTBOX
+=========================================================
+*/
+
+function openLightbox(
+  src
+){
+
+  if(!src){
+
+    return;
+
+  }
+
+
+  lbImg.src =
+    src;
+
+
+  lightbox.classList.add(
+    "visible"
+  );
+
+}
+
+
+function closeLightbox(){
+
+  lightbox.classList.remove(
+    "visible"
+  );
+
+
+  setTimeout(() => {
+
+    lbImg.src =
+      "";
+
+  }, 200);
+
+}
+
+
+document
+  .getElementById(
+    "lb-close"
+  )
+  .addEventListener(
+    "click",
+    closeLightbox
+  );
+
+
+lightbox.addEventListener(
+  "click",
+  event => {
+
+    if(event.target === lightbox){
+
+      closeLightbox();
+
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Escape"){
+
+      closeLightbox();
+
+      closeAlbumModal();
+
+      closeAdminModal();
+
+    }
+
+  }
+);
+
+
+/*
+=========================================================
+ SPOTLIGHT
+=========================================================
+*/
+
+lockScreen.addEventListener(
+  "mousemove",
+  event => {
+
+    const x =
+      (
+        event.clientX /
+        window.innerWidth
+      ) * 100;
+
+
+    const y =
+      (
+        event.clientY /
+        window.innerHeight
+      ) * 100;
+
+
+    lockScreen.style.setProperty(
+      "--mx",
+      `${x}%`
+    );
+
+
+    lockScreen.style.setProperty(
+      "--my",
+      `${y}%`
+    );
+
+  }
+);
+
+
+/*
+=========================================================
+ START APP
+=========================================================
+*/
+
+async function startApp(){
+
+  /*
+    Pastikan kedua sesi logout
+    ketika halaman baru dibuka.
+  */
+
+  try{
+
+    await signOut(ownerAuth);
+
+  }catch(error){
+
+    console.warn(error);
+
+  }
+
+
+  try{
+
+    await signOut(adminAuth);
+
+  }catch(error){
+
+    console.warn(error);
+
+  }
+
+
+  ownerUid =
+    null;
+
+  adminUid =
+    null;
+
+  isAdmin =
+    false;
+
+  albums =
+    [];
+
+  currentAlbumId =
+    null;
+
+  pendingAdminAction =
+    null;
+
+
+  setAdminMode(false);
+
+
+  albumsLoading.style.display =
+    "none";
+
+
+  albumsView.style.display =
+    "block";
+
+
+  albumView.classList.remove(
+    "visible"
+  );
+
+
+  app.classList.remove(
+    "visible"
+  );
+
+
+  lockScreen.style.display =
+    "flex";
+
+
+  lockScreen.classList.remove(
+    "hidden"
+  );
+
+
+  setTimeout(() => {
+
+    pwInput.focus();
+
+  }, 250);
+
+}
+
+
+/*
+=========================================================
+ RUN
+=========================================================
+*/
+
+startApp();
+
+    </script>
+
 </body>
+
 </html>
