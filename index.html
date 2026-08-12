@@ -3879,7 +3879,7 @@ async function deletePhoto(
 
         await deleteObject(
           ref(
-            storage,
+            adminStorage,
             photo.storagePath
           )
         );
@@ -4082,7 +4082,7 @@ async function deleteCurrentAlbum(){
 
           await deleteObject(
             ref(
-              storage,
+              adminStorage,
               photo.storagePath
             )
           );
